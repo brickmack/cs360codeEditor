@@ -4,9 +4,6 @@ import javax.swing.*;
 import javax.swing.plaf.metal.MetalIconFactory;
 import java.awt.*;
 import java.awt.event.MouseListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
@@ -19,28 +16,15 @@ public class JTabbedPaneCloseButton extends JTabbedPane {
 	
 	public JTabbedPaneCloseButton() {
         super();
-        //addCloseAll();
-    }
-    
-    public void addCloseAll() {
-    	super.addTab(null, null);
-    	int count = this.getTabCount() - 1;
-    	
-    	setTabComponentAt(count, closeAllButton);
     }
 
     /* Override Addtab in order to add the close Button everytime */
     @Override
     public void addTab(String title, Icon icon, Component component, String tip) {
-    	//need to get rid of the existing close all button
-    	//int count = this.getTabCount() - 1;
-    	//remove(count);
-    	
     	//now we add the new tab
         super.addTab(title, icon, component, tip);
         int count = this.getTabCount() - 1;
         setTabComponentAt(count, new CloseButtonTab(component, title, icon));
-        //addCloseAll(); //and replace the close all
     }
 
     @Override

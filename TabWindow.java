@@ -10,10 +10,10 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -25,7 +25,7 @@ public class TabWindow extends JFrame {
 	private JMenuBar menuBar = new JMenuBar();
 	
 	public TabWindow() {
-		setSize(500,500);
+		setSize(700,700);
 		setTitle("Code Editor");
 		
 		menuSetup();
@@ -39,43 +39,16 @@ public class TabWindow extends JFrame {
 		createNewTab("Plaintext.txt");
 		generatePlaintext(tabs.get(1).getTextPane());
 		
-		
-		/*
-		weirdness here: using the createNewTab() function, and then passing that to generateJavaText()
-		the same way I did for generatePlaintext(), doesn't work. Program just hangs. Manually creating a Tab
-		object doesn't seem to work either. Ideas? The working code below basically creates the equivalent of a Tab
-		but is not an object on its own. Good enough for the demo, but this needs to be fixed.
-		*/
-		
 		//java tab
 		createNewTab("JavaFile.java");
+		tabs.get(2).setLang(1); //set to Java language
 		generateJavaText(tabs.get(2).getTextPane());
-		//System.out.println(tabs.get(2).getTextPane().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
 		
-		
-		System.out.println(tabs.get(0).getTextPane().toString()); //this line also works, even though its not directly dealing with the tab in question. What the hell?
+		System.out.println(tabs.get(0).getTextPane().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
 		
 		tabs.get(0).enableTriggers();
 		tabs.get(1).enableTriggers();
 		tabs.get(2).enableTriggers();
-		
-		/*
-		//java demo panel (working version)
-		JPanel panel_1 = new JPanel();
-		//tabbedPaneCloseButton.addTab("JavaFile.java", null, panel_1, null);
-		panel_1.setLayout(new BorderLayout(0, 0));
-		
-		JTextPane javaTextPane = new JTextPane();
-		//generateJavaText(javaTextPane);
-		JScrollPane javaScroll = new JScrollPane(javaTextPane);
-		//panel_1.add(javaScroll);
-		
-		Tab javaTab = new Tab("JavaFile.java");
-		javaTab.setScroller(javaScroll);
-		tabbedPaneCloseButton.addTab(javaTab.getName(), null, javaTab.getPanel(), null);
-		generateJavaText(javaTab.getTextPane());
-		System.out.println(javaTab.getTextPane().toString());
-		*/
 	}
 	
 	public void menuSetup() {
@@ -113,7 +86,7 @@ public class TabWindow extends JFrame {
 		JMenuItem fileMenuClose = new JMenuItem("Close");
 		fileMenu.add(fileMenuClose);
 		fileMenuClose.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
+			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
@@ -132,20 +105,60 @@ public class TabWindow extends JFrame {
 	
 	public void languageMenuSetup() {
 		JMenu languageMenu = new JMenu("Languages");
+		languageMenu.addMenuListener(new MenuListener() {
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+			}
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				System.out.println("test");
+				
+				//we need to check which language the current tab is set to and set the radiobutton appropriately
+			}
+		});
 		menuBar.add(languageMenu);
 		
 		ButtonGroup languageGroup = new ButtonGroup();
 		
 		JRadioButtonMenuItem languageMenuPlaintext = new JRadioButtonMenuItem("Plaintext");
+		languageMenuPlaintext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				//we need to set the language in the current tab
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(0);
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+			}
+		});
 		languageGroup.add(languageMenuPlaintext);
 		languageMenu.add(languageMenuPlaintext);
 		languageMenuPlaintext.setSelected(true); //default
 		
 		JRadioButtonMenuItem languageMenuJava = new JRadioButtonMenuItem("Java");
+		languageMenuJava.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				//we need to set the language in the current tab
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(1);
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+			}
+		});
 		languageGroup.add(languageMenuJava);
 		languageMenu.add(languageMenuJava);
 		
 		JRadioButtonMenuItem languageMenuC = new JRadioButtonMenuItem("C");
+		languageMenuC.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				//we need to set the language in the current tab
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(2);
+				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
+			}
+		});
 		languageGroup.add(languageMenuC);
 		languageMenu.add(languageMenuC);
 	}
