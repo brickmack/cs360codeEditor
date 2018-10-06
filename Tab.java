@@ -21,6 +21,8 @@ public class Tab {
 	private JTextPane textPane;
 	private int language = 0;
 	private boolean enabled = false;
+	private Color darkGreen = new Color(18, 119, 2);
+	private Color purple = new Color(90, 2, 119);
 	
 	public Tab(String name) {
 		this.name = name;
@@ -117,7 +119,7 @@ public class Tab {
 				else if (language == 1) {
 					String text = textPane.getText();
 					
-					String[] keyPurple = new String[] {"public", "class", "static", "void"};
+					String[] keyPurple = new String[] {"public", "class", "static", "void", "for", "int"};
 					
 					StyledDocument doc = textPane.getStyledDocument();
 					
@@ -132,7 +134,7 @@ public class Tab {
 						
 						Matcher match = word.matcher(text);
 						
-			            StyleConstants.setForeground(set, Color.magenta);
+			            StyleConstants.setForeground(set, purple);
 						
 						while (match.find()) {
 							try {
@@ -155,7 +157,38 @@ public class Tab {
 					
 					Matcher match = commentPattern.matcher(text);
 					
-					StyleConstants.setForeground(set, Color.green);
+					StyleConstants.setForeground(set, darkGreen);
+					
+					while (match.find()) {
+						try {
+							//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
+							int count = 0;
+							for (int i=0; i<match.start(); i++) {
+								if (text.charAt(i) == '\n') {
+									count++;
+								}
+							}
+							
+							//also count newlines within the match, since block comments can cover multiple lines
+							int inMatchCount = 0;
+							for (int i=match.start(); i<match.end(); i++) {
+								if (text.charAt(i) == '\n') {
+									inMatchCount++;
+								}
+							}
+							
+		                    doc.setCharacterAttributes(match.start() - count, (match.end() - match.start()) - inMatchCount, set, true);
+						}
+						catch (Exception e) {
+							System.out.println(e);
+						}
+					}
+					
+					Pattern stringPattern = Pattern.compile("\".*\"");
+					
+					match = stringPattern.matcher(text);
+					
+					StyleConstants.setForeground(set, Color.BLUE);
 					
 					while (match.find()) {
 						try {

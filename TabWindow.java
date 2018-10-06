@@ -24,6 +24,12 @@ public class TabWindow extends JFrame {
 	private ArrayList<Tab> tabs = new ArrayList<Tab>();
 	private JMenuBar menuBar = new JMenuBar();
 	
+	private JRadioButtonMenuItem languageMenuPlaintext = new JRadioButtonMenuItem("Plaintext");
+	private JRadioButtonMenuItem languageMenuJava = new JRadioButtonMenuItem("Java");
+	private JRadioButtonMenuItem languageMenuC = new JRadioButtonMenuItem("C");
+	
+	private boolean setup = true;
+	
 	public TabWindow() {
 		setSize(700,700);
 		setTitle("Code Editor");
@@ -39,16 +45,12 @@ public class TabWindow extends JFrame {
 		createNewTab("Plaintext.txt");
 		generatePlaintext(tabs.get(1).getTextPane());
 		
-		//java tab
-		createNewTab("JavaFile.java");
-		tabs.get(2).setLang(1); //set to Java language
-		generateJavaText(tabs.get(2).getTextPane());
-		
 		System.out.println(tabs.get(0).getTextPane().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
 		
 		tabs.get(0).enableTriggers();
 		tabs.get(1).enableTriggers();
-		tabs.get(2).enableTriggers();
+		
+		setup = false;
 	}
 	
 	public void menuSetup() {
@@ -71,7 +73,17 @@ public class TabWindow extends JFrame {
 			}
 		});
 		
-		JMenuItem fileMenuOpen = new JMenuItem("Open");
+		JMenuItem fileMenuOpen = new JMenuItem("Open Javafile"); //hardcoded for testing purposes
+		fileMenuOpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				int newIndex = tabs.size();
+				
+				createNewTab("javaFile.java");
+				tabs.get(newIndex).setLang(1); //set to Java language
+				generateJavaText(tabs.get(newIndex));
+				tabs.get(newIndex).enableTriggers();
+			}
+		});
 		fileMenu.add(fileMenuOpen);
 		
 		JMenuItem fileMenuSave = new JMenuItem("Save");
@@ -116,47 +128,46 @@ public class TabWindow extends JFrame {
 
 			@Override
 			public void menuSelected(MenuEvent e) {
-				System.out.println("test");
-				
 				//we need to check which language the current tab is set to and set the radiobutton appropriately
+				int currentTabLang = tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang();
+				if (currentTabLang == 0) {
+					languageMenuPlaintext.setSelected(true);
+				}
+				else if (currentTabLang == 1) {
+					languageMenuJava.setSelected(true);
+				}
+				else {
+					languageMenuC.setSelected(true);
+				}
 			}
 		});
 		menuBar.add(languageMenu);
 		
 		ButtonGroup languageGroup = new ButtonGroup();
 		
-		JRadioButtonMenuItem languageMenuPlaintext = new JRadioButtonMenuItem("Plaintext");
 		languageMenuPlaintext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				//we need to set the language in the current tab
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(0);
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 			}
 		});
 		languageGroup.add(languageMenuPlaintext);
 		languageMenu.add(languageMenuPlaintext);
 		languageMenuPlaintext.setSelected(true); //default
 		
-		JRadioButtonMenuItem languageMenuJava = new JRadioButtonMenuItem("Java");
 		languageMenuJava.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				//we need to set the language in the current tab
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(1);
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 			}
 		});
 		languageGroup.add(languageMenuJava);
 		languageMenu.add(languageMenuJava);
 		
-		JRadioButtonMenuItem languageMenuC = new JRadioButtonMenuItem("C");
 		languageMenuC.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				//we need to set the language in the current tab
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language was " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).setLang(2);
-				System.out.println("Selected tab = " + tabbedPaneCloseButton.getSelectedIndex() + ", language now is " + tabs.get(tabbedPaneCloseButton.getSelectedIndex()).getLang());
 			}
 		});
 		languageGroup.add(languageMenuC);
@@ -167,42 +178,25 @@ public class TabWindow extends JFrame {
 		Tab newTab = new Tab(name);
 		tabbedPaneCloseButton.addTab(name, null, newTab.getPanel(), null);
 		tabs.add(newTab);
+		
+		if (setup == false) {
+			newTab.enableTriggers();
+		}
 	}
 	
-	public void generateJavaText(JTextPane textPane) {
-		Color darkGreen = new Color(18, 119, 2);
-		Color purple = new Color(90, 2, 119);
-		
+	public void openFile(String name) {
+		//do something
+	}
+	
+	public void generateJavaText(Tab tab) {
+		JTextPane textPane = tab.getTextPane();
 		StyledDocument doc = textPane.getStyledDocument();
 
 		Style style = textPane.addStyle("style", null);
-		StyleConstants.setForeground(style, darkGreen);
+		StyleConstants.setForeground(style, Color.BLACK);
 		
 		try {
-			//good god this is tedious
-			doc.insertString(doc.getLength(), "/*\nTHIS IS A COMMENT\n\nSample syntax highlighting for Java, please don't edit\n*/\n\n",  style);
-			StyleConstants.setForeground(style, purple);
-			doc.insertString(doc.getLength(), "public class ", style);
-			StyleConstants.setForeground(style, Color.black);
-			doc.insertString(doc.getLength(), "Test {\n", style);
-			StyleConstants.setForeground(style, purple);
-			doc.insertString(doc.getLength(), "     public static void ", style);
-			StyleConstants.setForeground(style, Color.black);
-			doc.insertString(doc.getLength(), "main(String[] args) {\n", style);
-			StyleConstants.setForeground(style, darkGreen);
-			doc.insertString(doc.getLength(), "          //does something\n", style);
-			StyleConstants.setForeground(style, purple);
-			doc.insertString(doc.getLength(), "          for ", style);
-			StyleConstants.setForeground(style, Color.black);
-			doc.insertString(doc.getLength(), "(", style);
-			StyleConstants.setForeground(style, purple);
-			doc.insertString(doc.getLength(), "int ", style);
-			StyleConstants.setForeground(style, Color.black);
-			doc.insertString(doc.getLength(), "i=0; i<100; i++) {\n               System.out.println(", style);
-			StyleConstants.setForeground(style, Color.blue);
-			doc.insertString(doc.getLength(), "\"test string!!\"", style);
-			StyleConstants.setForeground(style, Color.black);
-			doc.insertString(doc.getLength(), ");\n          }\n     }\n}", style);
+			doc.insertString(doc.getLength(), "/*\nTHIS IS A COMMENT\n\nSample syntax highlighting for Java, please don't edit\n*/\n\npublic class Test {\n     public static void main(String[] args) {\n          //does something\n          for (int i=0; i<100; i++) {\n               System.out.println(\"test string!!\");\n          }\n     }\n}", style);
 		}
 		catch (Exception e) {
 			System.out.println(e);
