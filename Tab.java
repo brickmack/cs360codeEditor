@@ -2,6 +2,7 @@ package cs360Project2;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JPanel;
@@ -16,6 +17,7 @@ import javax.swing.text.StyledDocument;
 
 public class Tab {
 	private String name;
+	private TextFile text;
 	private JScrollPane scroller;
 	private JPanel panel;
 	private JTextPane textPane;
@@ -25,10 +27,13 @@ public class Tab {
 	private Color purple = new Color(90, 2, 119);
 	
 	public Tab(String name) {
+		text = new TextFile();
 		this.name = name;
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout(0, 0));
 		textPane = new JTextPane();
+		
+		text.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -39,16 +44,21 @@ public class Tab {
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 				if (enabled == true) {
-					//System.out.println("insert");
 					highlight();
+					TextFile next = new TextFile();
+					next.setText(textPane.getText());
+					text.setNext(next);
+					next.setPrev(text);
+					text = next;
 				}
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				//System.out.println("remove");
+				if (enabled == true) {
+					highlight();
+				}
 			}
-			
 		});
 		scroller = new JScrollPane(textPane);
 		panel.add(scroller);
@@ -66,158 +76,63 @@ public class Tab {
 		return textPane;
 	}
 	
-	public void setPanel(JPanel panel) {
-		this.panel = panel;
-	}
-	
-	public void setTextPane(JTextPane textPane) {
-		this.textPane = textPane;
-		scroller = new JScrollPane(this.textPane);
-	}
-	
 	private void highlight() {
 		Runnable doHighlight = new Runnable() {
 			@Override
 			public void run() {
-				if (language == 0) { //plaintext. In the finished version, we wont have text highlighting for this anyway, so dont need a case for it. just testing
+				//language == 0, plaintext. do nothing.
+				if (language == 1) {
+					String javaKeywords[] = {"public", "int"};
+					WordGroup keywords = new WordGroup("keywords", javaKeywords, purple, false);
+					WordGroup stringDef = new WordGroup("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+					WordGroup comment = new WordGroup("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*.*\\*/)"}, darkGreen, true);
+					
+					Language java = new Language("Java", new WordGroup[] {keywords, comment, stringDef});
+					
 					String text = textPane.getText();
-					
-					String[] keyPurple = new String[] {"bee"};
-					
 					StyledDocument doc = textPane.getStyledDocument();
 					
-		            SimpleAttributeSet defSet = new SimpleAttributeSet();
-		            StyleConstants.setForeground(defSet, Color.BLACK); //we need this line so it resets any uncolored text to black.
-		            //That way if a word was highlighted but is edited to no longer be a keyword ("while" -> "whale") it automatically un-highlights
+					SimpleAttributeSet defSet = new SimpleAttributeSet();
+					StyleConstants.setForeground(defSet, Color.BLACK);
 		            doc.setCharacterAttributes(0, text.length(), defSet, true);
 		            SimpleAttributeSet set = new SimpleAttributeSet();
-					
-					for (String s : keyPurple) {
-						Pattern word = Pattern.compile(s + "[\\.\\s,\n]"); //keyword, followed by either a space, period, or comma to ensure its not part of another word (beer, been, beet)
-						
-						Matcher match = word.matcher(text);
-						
-			            StyleConstants.setForeground(set, Color.yellow);
-						
-						while (match.find()) {
-							try {
-								//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
-								int count = 0;
-								for (int i=0; i<match.start(); i++) {
-									if (text.charAt(i) == '\n') {
-										count++;
+		            
+		            for (int i=0; i<java.getRules().length; i++) {
+		            	StyleConstants.setForeground(set, java.getRules()[i].getColor());
+		            	for (int j=0; j<java.getRules()[i].getDefinition().length; j++) {
+			            	Pattern word = Pattern.compile(java.getRules()[i].getDefinition()[j]);
+				            Matcher match = word.matcher(text);
+				            
+				            while (match.find()) {
+								try {
+									//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
+									int count = 0;
+									for (int k=0; k<match.start(); k++) {
+										if (text.charAt(k) == '\n') {
+											count++;
+										}
 									}
-								}
-			                    doc.setCharacterAttributes(match.start() - count, s.length(), set, true);
-							}
-							catch (Exception e) {
-								System.out.println(e);
-							}
-						}
-					}
-				}
-				else if (language == 1) {
-					String text = textPane.getText();
-					
-					String[] keyPurple = new String[] {"public", "class", "static", "void", "for", "int"};
-					
-					StyledDocument doc = textPane.getStyledDocument();
-					
-		            SimpleAttributeSet defSet = new SimpleAttributeSet();
-		            StyleConstants.setForeground(defSet, Color.BLACK); //we need this line so it resets any uncolored text to black.
-		            //That way if a word was highlighted but is edited to no longer be a keyword ("while" -> "whale") it automatically un-highlights
-		            doc.setCharacterAttributes(0, text.length(), defSet, true);
-		            SimpleAttributeSet set = new SimpleAttributeSet();
-					
-					for (String s : keyPurple) {
-						Pattern word = Pattern.compile(s + "[\\.\\s,\n]"); //keyword, followed by either a space, period, or comma to ensure its not part of another word (beer, been, beet)
-						
-						Matcher match = word.matcher(text);
-						
-			            StyleConstants.setForeground(set, purple);
-						
-						while (match.find()) {
-							try {
-								//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
-								int count = 0;
-								for (int i=0; i<match.start(); i++) {
-									if (text.charAt(i) == '\n') {
-										count++;
+									
+									//also count newlines within the match if applicable, since block comments and some other things can cover multiple lines
+									int inMatchCount = 0;
+									if (java.getRules()[i].isMultiLine() == true) {
+										for (int l=match.start(); l<match.end(); l++) {
+											if (text.charAt(l) == '\n') {
+												inMatchCount++;
+											}
+										}
 									}
+									doc.setCharacterAttributes(match.start() - count, (match.end() - match.start()) - inMatchCount, set, true);
 								}
-			                    doc.setCharacterAttributes(match.start() - count, s.length(), set, true);
-							}
-							catch (Exception e) {
-								System.out.println(e);
-							}
-						}
-					}
-					
-					Pattern commentPattern = Pattern.compile("((?m)//(.*)$)|((?s)/\\*.*\\*/)"); //finds 2 slashes followed by any content followed by end of line OR a multi-line block with /* CONTENT */
-					
-					Matcher match = commentPattern.matcher(text);
-					
-					StyleConstants.setForeground(set, darkGreen);
-					
-					while (match.find()) {
-						try {
-							//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
-							int count = 0;
-							for (int i=0; i<match.start(); i++) {
-								if (text.charAt(i) == '\n') {
-									count++;
+								catch (Exception e) {
+									System.out.println(e);
 								}
 							}
-							
-							//also count newlines within the match, since block comments can cover multiple lines
-							int inMatchCount = 0;
-							for (int i=match.start(); i<match.end(); i++) {
-								if (text.charAt(i) == '\n') {
-									inMatchCount++;
-								}
-							}
-							
-		                    doc.setCharacterAttributes(match.start() - count, (match.end() - match.start()) - inMatchCount, set, true);
-						}
-						catch (Exception e) {
-							System.out.println(e);
-						}
-					}
-					
-					Pattern stringPattern = Pattern.compile("\".*\"");
-					
-					match = stringPattern.matcher(text);
-					
-					StyleConstants.setForeground(set, Color.BLUE);
-					
-					while (match.find()) {
-						try {
-							//offset for newlines. will find a more efficient implementation later, because this will very quickly become time consuming
-							int count = 0;
-							for (int i=0; i<match.start(); i++) {
-								if (text.charAt(i) == '\n') {
-									count++;
-								}
-							}
-							
-							//also count newlines within the match, since block comments can cover multiple lines
-							int inMatchCount = 0;
-							for (int i=match.start(); i<match.end(); i++) {
-								if (text.charAt(i) == '\n') {
-									inMatchCount++;
-								}
-							}
-							
-		                    doc.setCharacterAttributes(match.start() - count, (match.end() - match.start()) - inMatchCount, set, true);
-						}
-						catch (Exception e) {
-							System.out.println(e);
-						}
-					}
+			            }
+		            }
 				}
-				
 				else {
-					System.out.println("unsupported language");
+					//System.out.println("unsupported language");
 				}
 			}
 		};
@@ -234,5 +149,31 @@ public class Tab {
 	
 	public int getLang() {
 		return language;
+	}
+	
+	public void undo() {
+		if (text.hasPrev()) {
+			text = text.getPrev();
+			textPane.setText(text.getText());
+			if (text.hasPrev()) {
+				text = text.getPrev();
+			}
+			System.out.println("success undo");
+		}
+		else {
+			System.out.println("failed undo: " + text.getText());
+		}
+	}
+	
+	public void redo() {
+		if (text.hasNext()) {
+			text = text.getNext();
+			String newText = text.getText();
+			textPane.setText(newText);
+			System.out.println("success redo: " + text.getText());
+		}
+		else {
+			System.out.println("failed redo: " + text.getText());
+		}
 	}
 }

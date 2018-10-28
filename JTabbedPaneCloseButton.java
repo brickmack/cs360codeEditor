@@ -12,8 +12,6 @@ import java.awt.event.MouseEvent;
  * A class which creates a JTabbedPane and auto sets a close button when you add a tab
  */
 public class JTabbedPaneCloseButton extends JTabbedPane {
-    private JButton closeAllButton = new JButton("Close all");
-	
 	public JTabbedPaneCloseButton() {
         super();
     }

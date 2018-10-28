@@ -1,0 +1,5 @@
+LANGUAGE java
+DEFAULTFILEEXTENSION .java
+HIGHLIGHTRULE name=keywords, regexDefinition={public}, {int} color=(2,3,4), false
+
+BLOCKDESIGNATOR a

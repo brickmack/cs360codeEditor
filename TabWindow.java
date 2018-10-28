@@ -4,7 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Scanner;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -30,9 +33,15 @@ public class TabWindow extends JFrame {
 	
 	private boolean setup = true;
 	
+	public static void main(String[] args) {
+		new TabWindow();
+	}
+	
 	public TabWindow() {
-		setSize(700,700);
-		setTitle("Code Editor");
+		setSize(900, 700);
+		setTitle("Code Editor prototype 4");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
 		
 		menuSetup();
 		
@@ -73,6 +82,20 @@ public class TabWindow extends JFrame {
 			}
 		});
 		
+		JMenuItem fileMenuOpen2 = new JMenuItem("Open");
+		fileMenuOpen2 = new JMenuItem("Open");
+		fileMenuOpen2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				int newIndex = tabs.size();
+				
+				createNewTab("javaFile.java");
+				tabs.get(newIndex).setLang(1); //set to Java language
+				openFile("javaFile.java", tabs.get(newIndex));
+				tabs.get(newIndex).enableTriggers();
+			}
+		});
+		fileMenu.add(fileMenuOpen2);
+		
 		JMenuItem fileMenuOpen = new JMenuItem("Open Javafile"); //hardcoded for testing purposes
 		fileMenuOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -108,10 +131,22 @@ public class TabWindow extends JFrame {
 		JMenu editMenu = new JMenu("Edit");
 		menuBar.add(editMenu);
 		
-		JMenuItem editMenuUndo = new JMenuItem("Undo (ctrl-z)");
+		JMenuItem editMenuUndo = new JMenuItem("Undo");
+		editMenuUndo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("undo in tab " + tabbedPaneCloseButton.getSelectedIndex());
+				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).undo();
+			}
+		});
 		editMenu.add(editMenuUndo);
 		
-		JMenuItem editMenuRedo = new JMenuItem("Redo (ctrl-y)");
+		JMenuItem editMenuRedo = new JMenuItem("Redo");
+		editMenuRedo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("redo in tab " + tabbedPaneCloseButton.getSelectedIndex());
+				tabs.get(tabbedPaneCloseButton.getSelectedIndex()).redo();
+			}
+		});
 		editMenu.add(editMenuRedo);
 	}
 	
@@ -184,8 +219,25 @@ public class TabWindow extends JFrame {
 		}
 	}
 	
-	public void openFile(String name) {
-		//do something
+	public void openFile(String name, Tab tab) {
+		try {
+			Scanner scanner = new Scanner(new File("src\\cs360Project2\\demoFiles\\javaDemoFile.java"));
+			String file = "";
+			while (true) {
+				file = file + scanner.nextLine();
+				if (scanner.hasNextLine()) {
+					file = file + "\r\n";
+				}
+				else {
+					break;
+				}
+			}
+			tab.getTextPane().setText(file);
+			scanner.close();
+		}
+		catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 	
 	public void generateJavaText(Tab tab) {
@@ -196,7 +248,7 @@ public class TabWindow extends JFrame {
 		StyleConstants.setForeground(style, Color.BLACK);
 		
 		try {
-			doc.insertString(doc.getLength(), "/*\nTHIS IS A COMMENT\n\nSample syntax highlighting for Java, please don't edit\n*/\n\npublic class Test {\n     public static void main(String[] args) {\n          //does something\n          for (int i=0; i<100; i++) {\n               System.out.println(\"test string!!\");\n          }\n     }\n}", style);
+			doc.insertString(doc.getLength(), "/*\nTHIS IS A COMMENT\n\nSample syntax highlighting for Java\n*/\n\npublic class Test {\n     public static void main(String[] args) {\n          //does something\n          for (int i=0; i<100; i++) {\n               System.out.println(\"test string!!\");\n          }\n     }\n}", style);
 		}
 		catch (Exception e) {
 			System.out.println(e);
