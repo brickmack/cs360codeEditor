@@ -1,15 +1,15 @@
-package cs360Project2;
+package cs360ProjectImplementation;
 
-public class TextFile {
+public class UserFile {
 	private String text;
-	private TextFile prevVersion;
-	private TextFile nextVersion;
-	private Node<CodeBlock> blocks;
+	private UserFile prevVersion;
+	private UserFile nextVersion;
+	private CodeBlock blocks;
 	
-	public TextFile() {
+	public UserFile() {
 	}
 	
-	public TextFile(String text, TextFile prevVersion, TextFile nextVersion) {
+	public UserFile(String text, UserFile prevVersion, UserFile nextVersion) {
 		this.text = text;
 		this.prevVersion = prevVersion;
 		this.nextVersion = nextVersion;
@@ -37,19 +37,19 @@ public class TextFile {
 		this.text = text;
 	}
 	
-	public TextFile getPrev() {
+	public UserFile getPrev() {
 		return prevVersion;
 	}
 	
-	public void setPrev(TextFile prevVersion) {
+	public void setPrev(UserFile prevVersion) {
 		this.prevVersion = prevVersion;
 	}
 	
-	public TextFile getNext() {
+	public UserFile getNext() {
 		return nextVersion;
 	}
 	
-	public void setNext(TextFile nextVersion) {
+	public void setNext(UserFile nextVersion) {
 		this.nextVersion = nextVersion;
 	}
 }

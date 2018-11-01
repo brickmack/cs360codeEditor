@@ -1,4 +1,4 @@
-package cs360Project2;
+package cs360ProjectImplementation;
 
 import java.awt.Color;
 import java.io.File;
@@ -7,16 +7,16 @@ import java.util.Scanner;
 
 public class Language {
 	private String name;
-	private WordGroup[] rules;
+	private HighlightRule[] rules;
 	private String fileExtension;
 	private String blockDesignator;
 	private InsertableCode[] insertable;
 	
-	public Language(String name, WordGroup[] rules) {
+	public Language(String name, HighlightRule[] rules) {
 		this.name = name;
 		this.rules = rules;
 		
-		read(new File("src\\cs360Project2\\javaConfig.txt"));
+		read(new File("src\\cs360ProjectImplementation\\javaConfig.txt")); //just for testing
 	}
 	
 	public void read(File fileName) {
@@ -66,7 +66,7 @@ public class Language {
 						arrayedRegexes[i] = regexes.get(i);
 					}
 					
-					WordGroup newGroup = new WordGroup(ruleName, arrayedRegexes, color, false);
+					HighlightRule newGroup = new HighlightRule(ruleName, arrayedRegexes, color, false);
 					
 					System.out.println("lang definition:");
 					System.out.println(nameInner);
@@ -91,7 +91,7 @@ public class Language {
 		return name;
 	}
 	
-	public WordGroup[] getRules() {
+	public HighlightRule[] getRules() {
 		return rules;
 	}
 }

@@ -1,7 +1,8 @@
-package cs360Project2;
+package cs360ProjectImplementation;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,23 +18,25 @@ import javax.swing.text.StyledDocument;
 
 public class Tab {
 	private String name;
-	private TextFile text;
+	private UserFile userFile;
 	private JScrollPane scroller;
 	private JPanel panel;
 	private JTextPane textPane;
 	private int language = 0;
 	private boolean enabled = false;
+	private File diskLocation;
+	private ArrayList<String> variables;
 	private Color darkGreen = new Color(18, 119, 2);
 	private Color purple = new Color(90, 2, 119);
 	
 	public Tab(String name) {
-		text = new TextFile();
+		userFile = new UserFile();
 		this.name = name;
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout(0, 0));
 		textPane = new JTextPane();
 		
-		text.setText("");
+		userFile.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -45,11 +48,11 @@ public class Tab {
 			public void insertUpdate(DocumentEvent e) {
 				if (enabled == true) {
 					highlight();
-					TextFile next = new TextFile();
+					UserFile next = new UserFile();
 					next.setText(textPane.getText());
-					text.setNext(next);
-					next.setPrev(text);
-					text = next;
+					userFile.setNext(next);
+					next.setPrev(userFile);
+					userFile = next;
 				}
 			}
 
@@ -62,6 +65,9 @@ public class Tab {
 		});
 		scroller = new JScrollPane(textPane);
 		panel.add(scroller);
+		
+		TextLineNumber tln = new TextLineNumber(textPane);
+		scroller.setRowHeaderView(tln);
 	}
 	
 	public String getName() {
@@ -82,12 +88,20 @@ public class Tab {
 			public void run() {
 				//language == 0, plaintext. do nothing.
 				if (language == 1) {
-					String javaKeywords[] = {"public", "int"};
-					WordGroup keywords = new WordGroup("keywords", javaKeywords, purple, false);
-					WordGroup stringDef = new WordGroup("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
-					WordGroup comment = new WordGroup("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*.*\\*/)"}, darkGreen, true);
+					String javaKeywords[] = {"abstract", "assert", "boolean",
+			                "break", "byte", "case", "catch", "char", "class", "const",
+			                "continue", "default", "do", "double", "else", "extends", "false",
+			                "final", "finally", "float", "for", "goto", "if", "implements",
+			                "import", "instanceof", "int", "interface", "long", "native",
+			                "new", "null", "package", "private", "protected", "public",
+			                "return", "short", "static", "strictfp", "super", "switch",
+			                "synchronized", "this", "throw", "throws", "transient", "true",
+			                "try", "void", "volatile", "while"};
+					HighlightRule keywords = new HighlightRule("keywords", javaKeywords, purple, false);
+					HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+					HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*.*\\*/)"}, darkGreen, true);
 					
-					Language java = new Language("Java", new WordGroup[] {keywords, comment, stringDef});
+					Language java = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
 					
 					String text = textPane.getText();
 					StyledDocument doc = textPane.getStyledDocument();
@@ -132,7 +146,7 @@ public class Tab {
 		            }
 				}
 				else {
-					//System.out.println("unsupported language");
+					//unsupported language. Need error handling here
 				}
 			}
 		};
@@ -145,6 +159,14 @@ public class Tab {
 	
 	public void setLang(int language) {
 		this.language = language;
+		if (language == 0) {
+			//special case for plaintext, run highlight only once to clear formatting
+			StyledDocument doc = textPane.getStyledDocument();
+			
+			SimpleAttributeSet defSet = new SimpleAttributeSet();
+			StyleConstants.setForeground(defSet, Color.BLACK);
+            doc.setCharacterAttributes(0, textPane.getText().length(), defSet, true);
+		}
 	}
 	
 	public int getLang() {
@@ -152,28 +174,28 @@ public class Tab {
 	}
 	
 	public void undo() {
-		if (text.hasPrev()) {
-			text = text.getPrev();
-			textPane.setText(text.getText());
-			if (text.hasPrev()) {
-				text = text.getPrev();
+		if (userFile.hasPrev()) {
+			userFile = userFile.getPrev();
+			textPane.setText(userFile.getText());
+			if (userFile.hasPrev()) {
+				userFile = userFile.getPrev();
 			}
 			System.out.println("success undo");
 		}
 		else {
-			System.out.println("failed undo: " + text.getText());
+			System.out.println("failed undo: " + userFile.getText());
 		}
 	}
 	
 	public void redo() {
-		if (text.hasNext()) {
-			text = text.getNext();
-			String newText = text.getText();
+		if (userFile.hasNext()) {
+			userFile = userFile.getNext();
+			String newText = userFile.getText();
 			textPane.setText(newText);
-			System.out.println("success redo: " + text.getText());
+			System.out.println("success redo: " + userFile.getText());
 		}
 		else {
-			System.out.println("failed redo: " + text.getText());
+			System.out.println("failed redo: " + userFile.getText());
 		}
 	}
 }

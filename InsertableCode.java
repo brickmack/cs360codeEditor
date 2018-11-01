@@ -1,4 +1,4 @@
-package cs360Project2;
+package cs360ProjectImplementation;
 
 public class InsertableCode {
 	private String name;

@@ -1,14 +1,14 @@
-package cs360Project2;
+package cs360ProjectImplementation;
 
 import java.awt.Color;
 
-public class WordGroup {
+public class HighlightRule {
 	private String name;
 	private String[] definition;
 	private Color color;
 	private boolean multiLine;
 	
-	public WordGroup(String name, String[] definition, Color color, boolean multiLine) {
+	public HighlightRule(String name, String[] definition, Color color, boolean multiLine) {
 		this.name = name;
 		this.definition = definition;
 		this.color = color;
