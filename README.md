@@ -28,21 +28,17 @@ KNOWN BUGS:
 
 FURTHER WORK:
 
-*File open dialog box (who wants to handle this?)
+*File open dialog box (Aaron)
 
-*File save and save as (who?)
+*File save and save as (Aaron)
 
-*Add functionality to tab right-click menu (who?)
-
-*Add find/replace functionality (who?)
+*Add find/replace functionality (Austin)
 
 *Fix issues with undo/redo (who?)
 
-*Keyboard shortcuts (who?)
+*Keyboard shortcuts (Aaron)
 
 *Complete implementation of configuration file reader for Language, verify that it completely works, migrate to that instead of hardcoded Language objects (Mack)
-
-*Optimization of syntax highlighting (Mack - I have an idea for this already, going to test soon)
 
 *Detect variable declarations (Mack)
 
