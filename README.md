@@ -38,10 +38,10 @@ FURTHER WORK:
 
 *Keyboard shortcuts (Aaron)
 
-*Complete implementation of configuration file reader for Language, verify that it completely works, migrate to that instead of hardcoded Language objects (Mack)
-
 *Detect variable declarations (Mack)
+
+*Code insertion (Aaron)
 
 *Add code folding buttons (who?) and logic (who?)
 
-*Create configuration file and test file for C (who?)
+*Create configuration file and test file for C (Mack)
