@@ -15,6 +15,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.swing.text.TabSet;
+import javax.swing.text.TabStop;
 
 public class Tab {
 	private String name;
@@ -22,7 +24,8 @@ public class Tab {
 	private JScrollPane scroller;
 	private JPanel panel;
 	private JTextPane textPane;
-	private int language = 0;
+	private int languageIndex = 0;
+	private Language language = new Language("Plaintext", null);
 	private boolean enabled = false;
 	private File diskLocation;
 	private ArrayList<String> variables;
@@ -35,7 +38,7 @@ public class Tab {
 		panel = new JPanel();
 		panel.setLayout(new BorderLayout(0, 0));
 		textPane = new JTextPane();
-		
+	    
 		userFile.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
@@ -86,23 +89,7 @@ public class Tab {
 		Runnable doHighlight = new Runnable() {
 			@Override
 			public void run() {
-				//language == 0, plaintext. do nothing.
-				if (language == 1) {
-					String javaKeywords[] = {"abstract", "assert", "boolean",
-			                "break", "byte", "case", "catch", "char", "class", "const",
-			                "continue", "default", "do", "double", "else", "extends", "false",
-			                "final", "finally", "float", "for", "goto", "if", "implements",
-			                "import", "instanceof", "int", "interface", "long", "native",
-			                "new", "null", "package", "private", "protected", "public",
-			                "return", "short", "static", "strictfp", "super", "switch",
-			                "synchronized", "this", "throw", "throws", "transient", "true",
-			                "try", "void", "volatile", "while"};
-					HighlightRule keywords = new HighlightRule("keywords", javaKeywords, purple, false);
-					HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
-					HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*.*\\*/)"}, darkGreen, true);
-					
-					Language java = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
-					
+				if (language.getRules() != null) {
 					String text = textPane.getText();
 					StyledDocument doc = textPane.getStyledDocument();
 					
@@ -111,10 +98,10 @@ public class Tab {
 		            doc.setCharacterAttributes(0, text.length(), defSet, true);
 		            SimpleAttributeSet set = new SimpleAttributeSet();
 		            
-		            for (int i=0; i<java.getRules().length; i++) {
-		            	StyleConstants.setForeground(set, java.getRules()[i].getColor());
-		            	for (int j=0; j<java.getRules()[i].getDefinition().length; j++) {
-			            	Pattern word = Pattern.compile(java.getRules()[i].getDefinition()[j]);
+		            for (int i=0; i<language.getRules().length; i++) {
+		            	StyleConstants.setForeground(set, language.getRules()[i].getColor());
+		            	for (int j=0; j<language.getRules()[i].getDefinition().length; j++) {
+			            	Pattern word = Pattern.compile(language.getRules()[i].getDefinition()[j]);
 				            Matcher match = word.matcher(text);
 				            
 				            while (match.find()) {
@@ -129,7 +116,7 @@ public class Tab {
 									
 									//also count newlines within the match if applicable, since block comments and some other things can cover multiple lines
 									int inMatchCount = 0;
-									if (java.getRules()[i].isMultiLine() == true) {
+									if (language.getRules()[i].isMultiLine() == true) {
 										for (int l=match.start(); l<match.end(); l++) {
 											if (text.charAt(l) == '\n') {
 												inMatchCount++;
@@ -145,9 +132,6 @@ public class Tab {
 			            }
 		            }
 				}
-				else {
-					//unsupported language. Need error handling here
-				}
 			}
 		};
 	    SwingUtilities.invokeLater(doHighlight);
@@ -157,20 +141,33 @@ public class Tab {
 		enabled = true;
 	}
 	
-	public void setLang(int language) {
-		this.language = language;
-		if (language == 0) {
+	public void disableTriggers() {
+		enabled = false;
+	}
+	
+	public void setLangIndex(int languageIndex) {
+		this.languageIndex = languageIndex;
+		if (languageIndex == 0) {
 			//special case for plaintext, run highlight only once to clear formatting
 			StyledDocument doc = textPane.getStyledDocument();
 			
 			SimpleAttributeSet defSet = new SimpleAttributeSet();
 			StyleConstants.setForeground(defSet, Color.BLACK);
             doc.setCharacterAttributes(0, textPane.getText().length(), defSet, true);
+            language = new Language("Plaintext", null);
+		}
+		else if (languageIndex == 1) {
+			String keysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b\r\n";
+			HighlightRule keywords = new HighlightRule("keywords", new String[] {keysString}, purple, false);
+			HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+			HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
+			
+			language = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
 		}
 	}
 	
-	public int getLang() {
-		return language;
+	public int getLangIndex() {
+		return languageIndex;
 	}
 	
 	public void undo() {
@@ -197,5 +194,19 @@ public class Tab {
 		else {
 			System.out.println("failed redo: " + userFile.getText());
 		}
+	}
+	
+	public void setLocation(File diskLocation) {
+		this.diskLocation = diskLocation;
+		
+		//set name by cutting off everything up to the last path separator
+		String name = diskLocation.toString();
+		int index = name.lastIndexOf('\\');
+		name = name.substring(index);
+		System.out.println(name);
+	}
+	
+	public File getLocation() {
+		return diskLocation;
 	}
 }

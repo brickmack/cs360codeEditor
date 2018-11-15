@@ -4,39 +4,67 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JTextPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 public class TabWindow extends JFrame {
 	private JTabbedPaneCloseable tabbedPane = new JTabbedPaneCloseable();
 	private ArrayList<Tab> tabs = new ArrayList<Tab>();
 	private JMenuBar menuBar = new JMenuBar();
 	
-	private JRadioButtonMenuItem languageMenuPlaintext = new JRadioButtonMenuItem("Plaintext");
-	private JRadioButtonMenuItem languageMenuJava = new JRadioButtonMenuItem("Java");
-	private JRadioButtonMenuItem languageMenuC = new JRadioButtonMenuItem("C");
+	private JRadioButtonMenuItem languageMenuItems[];
+	
+	private static Color darkGreen = new Color(18, 119, 2);
+	private static Color purple = new Color(90, 2, 119);
 	
 	private boolean setup = true; //Dont want to enable triggers for Highlight and stuff while everything is still loading, or it breaks stuff
 	
+	private JMenuItem fileMenuOpen;
+	private JMenuItem fileMenuNew;
+	private JMenuItem fileMenuSave;
+	private JMenuItem fileMenuSaveAs;
+	private JMenuItem fileMenuClose;
+	
+	private static Language[] languages;
+	
 	public static void main(String[] args) {
+		loadLanguages();
+		
 		new TabWindow();
 	}
 	
+	public static void loadLanguages() {
+		languages = new Language[3];
+		languages[0] = new Language("Plaintext", null);
+		
+		String keysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b\r\n";
+		HighlightRule keywords = new HighlightRule("keywords", new String[] {keysString}, purple, false);
+		HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+		HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
+		
+		languages[1] = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
+		
+		languages[2] = new Language("C", null);
+	}
+	
 	public TabWindow() {
+ 		this.addKeyListener(new Key());
+ 		
 		setSize(900, 700);
 		setTitle("Code Editor");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,50 +93,84 @@ public class TabWindow extends JFrame {
 		insertMenuSetup();
 	}
 	
+	public void updateInsertMenu(int lang) {
+		menuBar.remove(3);
+		
+		JMenu insertMenu = new JMenu("Insert fixed");
+		menuBar.add(insertMenu);
+		
+		menuBar.revalidate();
+	}
+	
 	public void insertMenuSetup() {
 		JMenu insertMenu = new JMenu("Insert");
 		menuBar.add(insertMenu);
+		
+		JMenuItem test = new JMenuItem("Test");
+		insertMenu.add(test);
+		test.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //String selected = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getSelectedText();
+                //System.out.println(selected);
+                
+                updateInsertMenu(1);
+            }
+        });
 	}
 	
 	public void fileMenuSetup() {
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		
-		JMenuItem fileMenuNew = new JMenuItem("New");
+		fileMenuNew = new JMenuItem("New");
 		fileMenu.add(fileMenuNew);
-		fileMenuNew.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				createNewTab("New tab");
-			}
-		});
+		fileMenuNew.addActionListener(new ButtonHandler());
 		
-		JMenuItem fileMenuOpen = new JMenuItem("Open");
 		fileMenuOpen = new JMenuItem("Open");
-		fileMenuOpen.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				int newIndex = tabs.size();
-				
-				createNewTab("javaFile.java");
-				tabs.get(newIndex).setLang(1); //set to Java language
-				openFile("javaFile.java", tabs.get(newIndex));
-				tabs.get(newIndex).enableTriggers();
-			}
-		});
+		fileMenuOpen.addActionListener(new ButtonHandler());
 		fileMenu.add(fileMenuOpen);
 		
-		JMenuItem fileMenuSave = new JMenuItem("Save");
-		fileMenu.add(fileMenuSave);
-		
-		JMenuItem fileMenuSaveAs = new JMenuItem("Save As");
-		fileMenu.add(fileMenuSaveAs);
-		
-		JMenuItem fileMenuClose = new JMenuItem("Close");
-		fileMenu.add(fileMenuClose);
-		fileMenuClose.addActionListener(new ActionListener() {
+		JMenuItem fileMenuOpenTest = new JMenuItem("Open test"); //for testing purposes only
+		fileMenuOpenTest.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				try {
+					File file = new File("src\\cs360ProjectImplementation\\demoFiles\\javaDemoFile.java");
+					int newIndex = tabs.size();
+					createNewTab(file.getName());
+					tabs.get(newIndex).setLangIndex(1); // set to Java language
+					Scanner scanner = new Scanner(file);
+					String content = "";
+					while (true) {
+						content = content + scanner.nextLine();
+						if (scanner.hasNextLine()) {
+							content = content + "\r\n";
+						}
+						else {
+							break;
+						}
+					}
+					tabs.get(newIndex).getTextPane().setText(content);
+					tabs.get(newIndex).enableTriggers();
+					scanner.close();
+				}
+				catch (Exception ex) {
+					System.out.println(ex);
+				}
 			}
 		});
+		fileMenu.add(fileMenuOpenTest);
+		
+		fileMenuSave = new JMenuItem("Save");
+ 		fileMenuSave.addActionListener(new ButtonHandler());
+		fileMenu.add(fileMenuSave);
+		
+		fileMenuSaveAs = new JMenuItem("Save As");
+ 		fileMenuSaveAs.addActionListener(new ButtonHandler());
+		fileMenu.add(fileMenuSaveAs);
+		
+		fileMenuClose = new JMenuItem("Close");
+		fileMenu.add(fileMenuClose);
+ 		fileMenuClose.addActionListener(new ButtonHandler()); 
 	}
 	
 	public void editMenuSetup() {
@@ -148,7 +210,33 @@ public class TabWindow extends JFrame {
 	}
 	
 	public void languageMenuSetup() {
+		//procedurally generates menu listing all languages
+		ButtonGroup languageGroup = new ButtonGroup();
 		JMenu languageMenu = new JMenu("Languages");
+		
+		languageMenuItems = new JRadioButtonMenuItem[languages.length];
+		
+		for (int i=0; i<languages.length; i++) {
+			languageMenuItems[i] = new JRadioButtonMenuItem(languages[i].getName());
+			
+			languageMenuItems[i].addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					//first we need to find out the index of the clicked button (this is kludgy as hell, if someone can find a better way thatd be great)
+					String clickedText = ((AbstractButton) ev.getSource()).getText();
+					
+					for (int i=0; i<languages.length; i++) {
+						if (clickedText.equals(languages[i].getName())) {
+							//we need to set the language in the current tab
+							tabs.get(tabbedPane.getSelectedIndex()).setLangIndex(i);
+							tabs.get(tabbedPane.getSelectedIndex()).enableTriggers();
+						}
+					}
+				}
+			});
+			languageGroup.add(languageMenuItems[i]);
+			languageMenu.add(languageMenuItems[i]);
+		}
+		
 		languageMenu.addMenuListener(new MenuListener() {
 			@Override
 			public void menuCanceled(MenuEvent e) {
@@ -161,52 +249,13 @@ public class TabWindow extends JFrame {
 			@Override
 			public void menuSelected(MenuEvent e) {
 				//we need to check which language the current tab is set to and set the radiobutton appropriately
-				int currentTabLang = tabs.get(tabbedPane.getSelectedIndex()).getLang();
-				if (currentTabLang == 0) {
-					languageMenuPlaintext.setSelected(true);
-				}
-				else if (currentTabLang == 1) {
-					languageMenuJava.setSelected(true);
-				}
-				else {
-					languageMenuC.setSelected(true);
-				}
+				int currentTabLang = tabs.get(tabbedPane.getSelectedIndex()).getLangIndex();
+				
+				languageMenuItems[currentTabLang].setSelected(true);
 			}
 		});
+		
 		menuBar.add(languageMenu);
-		
-		ButtonGroup languageGroup = new ButtonGroup();
-		
-		languageMenuPlaintext.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				//we need to set the language in the current tab
-				tabs.get(tabbedPane.getSelectedIndex()).setLang(0);
-				tabs.get(tabbedPane.getSelectedIndex()).enableTriggers();
-			}
-		});
-		languageGroup.add(languageMenuPlaintext);
-		languageMenu.add(languageMenuPlaintext);
-		languageMenuPlaintext.setSelected(true); //default
-		
-		languageMenuJava.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				//we need to set the language in the current tab
-				tabs.get(tabbedPane.getSelectedIndex()).setLang(1);
-				tabs.get(tabbedPane.getSelectedIndex()).enableTriggers();
-			}
-		});
-		languageGroup.add(languageMenuJava);
-		languageMenu.add(languageMenuJava);
-		
-		languageMenuC.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				//we need to set the language in the current tab
-				tabs.get(tabbedPane.getSelectedIndex()).setLang(2);
-				tabs.get(tabbedPane.getSelectedIndex()).enableTriggers();
-			}
-		});
-		languageGroup.add(languageMenuC);
-		languageMenu.add(languageMenuC);
 	}
 	
 	public void createNewTab(String name) {
@@ -219,24 +268,92 @@ public class TabWindow extends JFrame {
 		}
 	}
 	
-	public void openFile(String name, Tab tab) {
+	public void openFile() {
 		try {
-			Scanner scanner = new Scanner(new File("src\\cs360ProjectImplementation\\demoFiles\\javaDemoFile.java"));
-			String file = "";
-			while (true) {
-				file = file + scanner.nextLine();
-				if (scanner.hasNextLine()) { //simultaneously tests whether or not a newline is needed, and whether or not another loop iteration is needed
-					file = file + "\r\n";
+			JFileChooser j = new JFileChooser();
+			int result = j.showOpenDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File file = j.getSelectedFile();
+				int newIndex = tabs.size();
+				createNewTab(file.getName());
+				tabs.get(newIndex).setLangIndex(1); // set to Java language
+				Scanner scanner = new Scanner(file);
+				String content = "";
+				while (true) {
+					content = content + scanner.nextLine();
+					if (scanner.hasNextLine()) { // simultaneously tests whether or not a newline is needed, and whether
+													// or not another loop iteration is needed
+						content = content + "\r\n";
+					}
+					else {
+						break;
+					}
 				}
-				else {
-					break;
-				}
+				tabs.get(newIndex).getTextPane().setText(content);
+				tabs.get(newIndex).enableTriggers();
+				scanner.close();
 			}
-			tab.getTextPane().setText(file);
-			scanner.close();
 		}
 		catch (Exception e) {
 			System.out.println(e);
+		}
+	}
+	
+	public void saveFile() {
+		String name = tabs.get(tabbedPane.getSelectedIndex()).getName();
+		if (name.equals("New tab")) {
+			//save as
+		}
+		else {
+			File file = new File(name);
+			try {
+				BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+				bw.write(tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getText());
+				bw.close();
+				System.out.println("Save success");
+			}
+			catch (Exception e) {
+				System.out.println(e.toString());
+			}
+		}
+	}
+	
+	private class ButtonHandler implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() == fileMenuOpen) {
+				openFile();
+			}
+			else if (e.getSource() == fileMenuSave) {
+				saveFile();
+			}
+			else if (e.getSource() == fileMenuNew) {
+				createNewTab("New tab");
+			}
+			else if (e.getSource() == fileMenuSaveAs) {
+				
+			}
+			else if (e.getSource() == fileMenuClose) {
+				System.exit(0);
+			}
+		}
+	}
+	
+	private class Key implements KeyListener {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			 if ((e.getKeyCode() == KeyEvent.VK_S) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+                 saveFile();
+             }
+			 else if ((e.getKeyCode() == KeyEvent.VK_O) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+				 openFile();
+			 }
+		}
+		@Override
+		public void keyReleased(KeyEvent arg0) {
+		}
+		@Override
+		public void keyTyped(KeyEvent arg0) {
 		}
 	}
 }

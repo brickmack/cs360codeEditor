@@ -25,15 +25,8 @@ public class TextLineNumber extends JPanel
 	public final static float RIGHT = 1.0f;
 
 	private final static Border OUTER = new MatteBorder(0, 0, 0, 2, Color.GRAY);
-
 	private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
-
-	//Text component this TextTextLineNumber component is in sync with
-
 	private JTextComponent component;
-
-	//Properties that can be changed
-
 	private boolean updateFont;
 	private int borderGap;
 	private Color currentLineForeground;
@@ -41,7 +34,6 @@ public class TextLineNumber extends JPanel
 	private int minimumDisplayDigits;
 
 	//Keep history information to reduce the number of times the component needs to be repainted
-
     private int lastDigits;
     private int lastHeight;
     private int lastLine;

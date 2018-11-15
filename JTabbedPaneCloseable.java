@@ -11,11 +11,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-/**
- * @author 6dc
- *
- * A class which creates a JTabbedPane and auto sets a close button when you add a tab
- */
 public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener, ItemListener {
 	public JTabbedPaneCloseable() {
         super();
@@ -25,58 +20,44 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
     /* Override Addtab in order to add the close Button every time */
     @Override
     public void addTab(String title, Icon icon, Component component, String tip) {
-    	//now we add the new tab
         super.addTab(title, icon, component, tip);
         int count = this.getTabCount() - 1;
-        setTabComponentAt(count, new CloseButtonTab(component, title, icon));
+        CloseButtonTab newTab = new CloseButtonTab(component, title, icon, tip);
+        setTabComponentAt(count, newTab);
     }
     
     public void createPopupMenu(Component c) {
-    	//doesn't do anything currently
-        JMenuItem menuItem;
         //Create the popup menu.
         JPopupMenu popup = new JPopupMenu();
-        menuItem = new JMenuItem("A popup menu item");
-        menuItem.addActionListener(this);
-        popup.add(menuItem);
-        menuItem = new JMenuItem("Another popup menu item");
-        menuItem.addActionListener(this);
-        popup.add(menuItem);
+        
+        JMenuItem popupCloseTab = new JMenuItem("Close tab");
+        popupCloseTab.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				remove(getSelectedComponent());
+			}
+		});
+        popup.add(popupCloseTab);
+        
+        JMenuItem popupCloseAllTabs = new JMenuItem("Close all");
+        popupCloseAllTabs.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent ev) {
+        		removeAll();
+        	}
+        });
+        popup.add(popupCloseAllTabs);
 
-        //Add listener to the text area so the popup menu can come up.
+        //Add listener to the tab bar so the popup menu can come up.
         MouseListener popupListener = new PopupListener(popup);
         c.addMouseListener(popupListener);
-    }
-
-    @Override
-    public void addTab(String title, Icon icon, Component component) {
-        addTab(title, icon, component, null);
-    }
-
-    @Override
-    public void addTab(String title, Component component) {
-        addTab(title, null, component);
-    }
-
-    /* addTabNoExit */
-    public void addTabNoExit(String title, Icon icon, Component component, String tip) {
-        super.addTab(title, icon, component, tip);
-    }
-
-    public void addTabNoExit(String title, Icon icon, Component component) {
-        addTabNoExit(title, icon, component, null);
-    }
-
-    public void addTabNoExit(String title, Component component) {
-        addTabNoExit(title, null, component);
     }
 
     //Button
     public class CloseButtonTab extends JPanel {
         private Component tab;
 
-        public CloseButtonTab(final Component tab, String title, Icon icon) {
+        public CloseButtonTab(final Component tab, String title, Icon icon, String tip) {
             this.tab = tab;
+            this.setToolTipText(tip);
             setOpaque(false);
             FlowLayout flowLayout = new FlowLayout(FlowLayout.CENTER, 3, 3);
             setLayout(flowLayout);
@@ -86,6 +67,7 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
             JButton button = new JButton(MetalIconFactory.getInternalFrameCloseIcon(16));
             button.setMargin(new Insets(0, 0, 0, 0));
             button.addMouseListener(new CloseListener(tab));
+            button.setToolTipText("Close");
             add(button);
         }
     }
@@ -115,18 +97,10 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if(e.getSource() instanceof JButton){
-                JButton clickedButton = (JButton) e.getSource();
-             //   clickedButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY,3));
-            }
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-            if(e.getSource() instanceof JButton){
-                JButton clickedButton = (JButton) e.getSource();
-             //   clickedButton.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY,3));
-            }
         }
     }
 	@Override
