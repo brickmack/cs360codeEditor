@@ -28,9 +28,9 @@ KNOWN BUGS:
 
 FURTHER WORK:
 
-*File open dialog box (Aaron)
-
 *File save and save as (Aaron)
+
+*Tab rename (Aaron)
 
 *Add find/replace functionality (Austin)
 
@@ -42,6 +42,10 @@ FURTHER WORK:
 
 *Code insertion (Aaron)
 
-*Add code folding buttons (who?) and logic (who?)
+*Add code folding buttons (Mack) and logic (who?)
 
-*Create configuration file and test file for C (Mack)
+*Move Language instantiation to TabWindow from Tab (Mack)
+
+*Complete definition for Java (Mack)
+
+*Create definition and test file for C (Mack)
