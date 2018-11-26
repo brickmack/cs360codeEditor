@@ -1,10 +1,5 @@
 package cs360ProjectImplementation;
 
-import java.awt.Color;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Scanner;
-
 public class Language {
 	private String name;
 	private HighlightRule[] rules;
@@ -12,9 +7,10 @@ public class Language {
 	private String blockDesignator;
 	private InsertableCode[] insertable;
 	
-	public Language(String name, HighlightRule[] rules) {
+	public Language(String name, HighlightRule[] rules, String fileExtension) {
 		this.name = name;
 		this.rules = rules;
+		this.fileExtension = fileExtension;
 	}
 	
 	public String getName() {
@@ -23,5 +19,21 @@ public class Language {
 	
 	public HighlightRule[] getRules() {
 		return rules;
+	}
+	
+	public String getFileExtension() {
+		return fileExtension;
+	}
+	
+	public String getBlockDesignator() {
+		return blockDesignator;
+	}
+	
+	public InsertableCode getInsertableCode(int i) {
+		return insertable[i];
+	}
+	
+	public InsertableCode[] getInsertableCode() {
+		return insertable;
 	}
 }

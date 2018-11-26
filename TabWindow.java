@@ -9,7 +9,7 @@ import java.awt.event.KeyListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.ArrayList;
+import javax.swing.text.BadLocationException; 
 import java.util.Scanner;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -24,7 +24,6 @@ import javax.swing.event.MenuListener;
 
 public class TabWindow extends JFrame {
 	private JTabbedPaneCloseable tabbedPane = new JTabbedPaneCloseable();
-	private ArrayList<Tab> tabs = new ArrayList<Tab>();
 	private JMenuBar menuBar = new JMenuBar();
 	
 	private JRadioButtonMenuItem languageMenuItems[];
@@ -41,6 +40,13 @@ public class TabWindow extends JFrame {
 	private JMenuItem fileMenuClose;
 	
 	private static Language[] languages;
+	private JMenuItem test;
+	private JMenuItem forMenuItem;
+	private JMenuItem whileMenuItem;
+	private JMenuItem ifElseMenuItem;
+	private InsertableCode insertCode;
+	private JMenuItem doWhileMenuItem;
+	private JMenuItem ifElseIfMenuItem;
 	
 	public static void main(String[] args) {
 		loadLanguages();
@@ -50,19 +56,20 @@ public class TabWindow extends JFrame {
 	
 	public static void loadLanguages() {
 		languages = new Language[3];
-		languages[0] = new Language("Plaintext", null);
+		languages[0] = new Language("Plaintext", null, "txt");
 		
 		String keysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b\r\n";
 		HighlightRule keywords = new HighlightRule("keywords", new String[] {keysString}, purple, false);
 		HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
 		HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
 		
-		languages[1] = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
+		languages[1] = new Language("Java", new HighlightRule[] {keywords, comment, stringDef}, "java");
 		
-		languages[2] = new Language("C", null);
+		languages[2] = new Language("C", null, "c");
 	}
 	
 	public TabWindow() {
+ 		insertCode = new InsertableCode(); 
  		this.addKeyListener(new Key());
  		
 		setSize(900, 700);
@@ -77,9 +84,8 @@ public class TabWindow extends JFrame {
 		//blank tab
 		createNewTab("New tab");
 		
-		System.out.println(tabs.get(0).getTextPane().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
-		
-		tabs.get(0).enableTriggers();
+		System.out.println(tabbedPane.getSelectedComponent().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
+		((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 		
 		setup = false;
 	}
@@ -106,16 +112,28 @@ public class TabWindow extends JFrame {
 		JMenu insertMenu = new JMenu("Insert");
 		menuBar.add(insertMenu);
 		
-		JMenuItem test = new JMenuItem("Test");
+		test = new JMenuItem("Test");
 		insertMenu.add(test);
-		test.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //String selected = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getSelectedText();
-                //System.out.println(selected);
-                
-                updateInsertMenu(1);
-            }
-        });
+		
+ 		forMenuItem = new JMenuItem("For Loop");
+ 		insertMenu.add(forMenuItem);
+ 		forMenuItem.addActionListener(new ButtonHandler()); 
+ 		
+ 		doWhileMenuItem = new JMenuItem("Do While");
+ 		insertMenu.add(doWhileMenuItem);
+ 		doWhileMenuItem.addActionListener(new ButtonHandler()); 
+ 		
+ 		whileMenuItem = new JMenuItem("While Loop");
+ 		insertMenu.add(whileMenuItem);
+ 		whileMenuItem.addActionListener(new ButtonHandler());
+ 		
+ 		ifElseMenuItem = new JMenuItem("If Else");
+ 		insertMenu.add(ifElseMenuItem);
+ 		ifElseMenuItem.addActionListener(new ButtonHandler());
+ 		
+ 		ifElseIfMenuItem = new JMenuItem("If Else If ");
+ 		insertMenu.add(ifElseIfMenuItem);
+ 		ifElseIfMenuItem.addActionListener(new ButtonHandler());
 	}
 	
 	public void fileMenuSetup() {
@@ -129,36 +147,6 @@ public class TabWindow extends JFrame {
 		fileMenuOpen = new JMenuItem("Open");
 		fileMenuOpen.addActionListener(new ButtonHandler());
 		fileMenu.add(fileMenuOpen);
-		
-		JMenuItem fileMenuOpenTest = new JMenuItem("Open test"); //for testing purposes only
-		fileMenuOpenTest.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					File file = new File("src\\cs360ProjectImplementation\\demoFiles\\javaDemoFile.java");
-					int newIndex = tabs.size();
-					createNewTab(file.getName());
-					tabs.get(newIndex).setLangIndex(1); // set to Java language
-					Scanner scanner = new Scanner(file);
-					String content = "";
-					while (true) {
-						content = content + scanner.nextLine();
-						if (scanner.hasNextLine()) {
-							content = content + "\r\n";
-						}
-						else {
-							break;
-						}
-					}
-					tabs.get(newIndex).getTextPane().setText(content);
-					tabs.get(newIndex).enableTriggers();
-					scanner.close();
-				}
-				catch (Exception ex) {
-					System.out.println(ex);
-				}
-			}
-		});
-		fileMenu.add(fileMenuOpenTest);
 		
 		fileMenuSave = new JMenuItem("Save");
  		fileMenuSave.addActionListener(new ButtonHandler());
@@ -181,7 +169,7 @@ public class TabWindow extends JFrame {
 		editMenuUndo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("undo in tab " + tabbedPane.getSelectedIndex());
-				tabs.get(tabbedPane.getSelectedIndex()).undo();
+				((Tab) tabbedPane.getSelectedComponent()).undo();
 			}
 		});
 		editMenu.add(editMenuUndo);
@@ -190,7 +178,7 @@ public class TabWindow extends JFrame {
 		editMenuRedo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("redo in tab " + tabbedPane.getSelectedIndex());
-				tabs.get(tabbedPane.getSelectedIndex()).redo();
+				((Tab) tabbedPane.getSelectedComponent()).redo();
 			}
 		});
 		editMenu.add(editMenuRedo);
@@ -227,8 +215,8 @@ public class TabWindow extends JFrame {
 					for (int i=0; i<languages.length; i++) {
 						if (clickedText.equals(languages[i].getName())) {
 							//we need to set the language in the current tab
-							tabs.get(tabbedPane.getSelectedIndex()).setLangIndex(i);
-							tabs.get(tabbedPane.getSelectedIndex()).enableTriggers();
+							((Tab) tabbedPane.getSelectedComponent()).setLangIndex(i);
+							((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 						}
 					}
 				}
@@ -249,7 +237,7 @@ public class TabWindow extends JFrame {
 			@Override
 			public void menuSelected(MenuEvent e) {
 				//we need to check which language the current tab is set to and set the radiobutton appropriately
-				int currentTabLang = tabs.get(tabbedPane.getSelectedIndex()).getLangIndex();
+				int currentTabLang = ((Tab) tabbedPane.getSelectedComponent()).getLangIndex();
 				
 				languageMenuItems[currentTabLang].setSelected(true);
 			}
@@ -259,13 +247,26 @@ public class TabWindow extends JFrame {
 	}
 	
 	public void createNewTab(String name) {
-		Tab newTab = new Tab(name);
-		tabbedPane.addTab(name, null, newTab.getPanel(), null);
-		tabs.add(newTab);
+		Tab newTab = new Tab(name, languages);
+		tabbedPane.addTab(name, null, newTab, null);
+		
+		//automatically shift the selection to the new tab
+		tabbedPane.setSelectedComponent(newTab);
 		
 		if (setup == false) {
 			newTab.enableTriggers();
 		}
+	}
+	
+	public String getFileExtension(File file) {
+		//convenience method. Will probably merge into openFile later, since thats the only place we use it
+	    if (file == null) {
+	        return "";
+	    }
+	    String name = file.getName();
+	    int i = name.lastIndexOf('.');
+	    String ext = i > 0 ? name.substring(i + 1) : "";
+	    return ext;
 	}
 	
 	public void openFile() {
@@ -274,13 +275,14 @@ public class TabWindow extends JFrame {
 			int result = j.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = j.getSelectedFile();
-				int newIndex = tabs.size();
+				System.out.println(file.toString());
 				createNewTab(file.getName());
-				tabs.get(newIndex).setLangIndex(1); // set to Java language
+				
 				Scanner scanner = new Scanner(file);
 				String content = "";
 				while (true) {
 					content = content + scanner.nextLine();
+					System.out.println(content);
 					if (scanner.hasNextLine()) { // simultaneously tests whether or not a newline is needed, and whether
 													// or not another loop iteration is needed
 						content = content + "\r\n";
@@ -289,8 +291,17 @@ public class TabWindow extends JFrame {
 						break;
 					}
 				}
-				tabs.get(newIndex).getTextPane().setText(content);
-				tabs.get(newIndex).enableTriggers();
+				
+				//set language
+				String extension = getFileExtension(file);
+				for (int i=0; i<languages.length; i++) {
+					if (languages[i].getFileExtension().equals(extension)) {
+						((Tab) tabbedPane.getSelectedComponent()).setLangIndex(i);
+					}
+				}
+				
+				((Tab) tabbedPane.getSelectedComponent()).getTextPane().setText(content);
+				((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 				scanner.close();
 			}
 		}
@@ -300,21 +311,37 @@ public class TabWindow extends JFrame {
 	}
 	
 	public void saveFile() {
-		String name = tabs.get(tabbedPane.getSelectedIndex()).getName();
+		String name = ((Tab) tabbedPane.getSelectedComponent()).getName();
 		if (name.equals("New tab")) {
-			//save as
+			//saveAsFile();
 		}
 		else {
 			File file = new File(name);
 			try {
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-				bw.write(tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getText());
+				bw.write(((Tab) tabbedPane.getSelectedComponent()).getTextPane().getText());
 				bw.close();
 				System.out.println("Save success");
 			}
 			catch (Exception e) {
 				System.out.println(e.toString());
 			}
+		}
+	}
+	
+	public void saveAsFile() {
+		try {
+			JFileChooser j = new JFileChooser();
+			int result = j.showSaveDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File file = j.getSelectedFile();
+				BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+				//bw.write(tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getText());
+				bw.close();
+			}
+		}
+		catch (Exception e) {
+			System.out.println(e);
 		}
 	}
 	
@@ -331,10 +358,56 @@ public class TabWindow extends JFrame {
 				createNewTab("New tab");
 			}
 			else if (e.getSource() == fileMenuSaveAs) {
-				
+				saveAsFile();
 			}
 			else if (e.getSource() == fileMenuClose) {
 				System.exit(0);
+			}
+			
+			else if(e.getSource() == whileMenuItem) {
+				int positon = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getCaretPosition();
+				try {
+					((Tab) tabbedPane.getSelectedComponent()).getTextPane().getDocument().insertString(positon,insertCode.getWhile(), null);
+				}
+				catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==forMenuItem) {
+				int positon = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getCaretPosition();
+				try {
+					((Tab) tabbedPane.getSelectedComponent()).getTextPane().getDocument().insertString(positon,insertCode.getFor(), null);
+				}
+				catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==doWhileMenuItem) {
+				int positon = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getCaretPosition();
+				try {
+					((Tab) tabbedPane.getSelectedComponent()).getTextPane().getDocument().insertString(positon,insertCode.getDoWhile(), null);
+				}
+				catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==ifElseMenuItem) {
+				int positon = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getCaretPosition();
+				try {
+					((Tab) tabbedPane.getSelectedComponent()).getTextPane().getDocument().insertString(positon,insertCode.getIfElse(), null);
+				}
+				catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==ifElseIfMenuItem) {
+				int positon = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getCaretPosition();
+				try {
+					((Tab) tabbedPane.getSelectedComponent()).getTextPane().getDocument().insertString(positon,insertCode.getIfElseIfElse(), null);
+				}
+				catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 	}

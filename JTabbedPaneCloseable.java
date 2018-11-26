@@ -18,11 +18,10 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
     }
 
     /* Override Addtab in order to add the close Button every time */
-    @Override
-    public void addTab(String title, Icon icon, Component component, String tip) {
-        super.addTab(title, icon, component, tip);
+    public void addTab(String title, Icon icon, Tab tab, String tip) {
+        super.addTab(title, icon, tab, tip);
         int count = this.getTabCount() - 1;
-        CloseButtonTab newTab = new CloseButtonTab(component, title, icon, tip);
+        CloseButtonTab newTab = new CloseButtonTab(tab, title, icon, tip);
         setTabComponentAt(count, newTab);
     }
     
@@ -53,9 +52,9 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
 
     //Button
     public class CloseButtonTab extends JPanel {
-        private Component tab;
+        private Tab tab;
 
-        public CloseButtonTab(final Component tab, String title, Icon icon, String tip) {
+        public CloseButtonTab(final Tab tab, String title, Icon icon, String tip) {
             this.tab = tab;
             this.setToolTipText(tip);
             setOpaque(false);

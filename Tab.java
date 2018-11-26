@@ -15,36 +15,32 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import javax.swing.text.TabSet;
-import javax.swing.text.TabStop;
 
-public class Tab {
+public class Tab extends JPanel {
 	private String name;
 	private UserFile userFile;
 	private JScrollPane scroller;
-	private JPanel panel;
-	private JTextPane textPane;
+	private JTextPaneCollapsible textPane; //replace with private JTextPane textPane to disable the test collapse feature
 	private int languageIndex = 0;
-	private Language language = new Language("Plaintext", null);
+	private Language[] languages;
+	private Language language = new Language("Plaintext", null, ".txt");
 	private boolean enabled = false;
 	private File diskLocation;
 	private ArrayList<String> variables;
-	private Color darkGreen = new Color(18, 119, 2);
-	private Color purple = new Color(90, 2, 119);
 	
-	public Tab(String name) {
+	public Tab(String name, Language[] languages) {
+		super();
 		userFile = new UserFile();
 		this.name = name;
-		panel = new JPanel();
-		panel.setLayout(new BorderLayout(0, 0));
-		textPane = new JTextPane();
+		this.languages = languages;
+		setLayout(new BorderLayout(0, 0));
+		textPane = new JTextPaneCollapsible();
 	    
 		userFile.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				//System.out.println("changed");
 			}
 
 			@Override
@@ -67,7 +63,7 @@ public class Tab {
 			}
 		});
 		scroller = new JScrollPane(textPane);
-		panel.add(scroller);
+		add(scroller);
 		
 		TextLineNumber tln = new TextLineNumber(textPane);
 		scroller.setRowHeaderView(tln);
@@ -75,10 +71,6 @@ public class Tab {
 	
 	public String getName() {
 		return name;
-	}
-	
-	public JPanel getPanel() {
-		return panel;
 	}
 	
 	public JTextPane getTextPane() {
@@ -89,15 +81,15 @@ public class Tab {
 		Runnable doHighlight = new Runnable() {
 			@Override
 			public void run() {
+				String text = textPane.getText();
+				StyledDocument doc = textPane.getStyledDocument();
+				
+				SimpleAttributeSet defSet = new SimpleAttributeSet();
+				StyleConstants.setForeground(defSet, Color.BLACK);
+	            doc.setCharacterAttributes(0, text.length(), defSet, true);
+	            SimpleAttributeSet set = new SimpleAttributeSet();
+	            
 				if (language.getRules() != null) {
-					String text = textPane.getText();
-					StyledDocument doc = textPane.getStyledDocument();
-					
-					SimpleAttributeSet defSet = new SimpleAttributeSet();
-					StyleConstants.setForeground(defSet, Color.BLACK);
-		            doc.setCharacterAttributes(0, text.length(), defSet, true);
-		            SimpleAttributeSet set = new SimpleAttributeSet();
-		            
 		            for (int i=0; i<language.getRules().length; i++) {
 		            	StyleConstants.setForeground(set, language.getRules()[i].getColor());
 		            	for (int j=0; j<language.getRules()[i].getDefinition().length; j++) {
@@ -147,23 +139,8 @@ public class Tab {
 	
 	public void setLangIndex(int languageIndex) {
 		this.languageIndex = languageIndex;
-		if (languageIndex == 0) {
-			//special case for plaintext, run highlight only once to clear formatting
-			StyledDocument doc = textPane.getStyledDocument();
-			
-			SimpleAttributeSet defSet = new SimpleAttributeSet();
-			StyleConstants.setForeground(defSet, Color.BLACK);
-            doc.setCharacterAttributes(0, textPane.getText().length(), defSet, true);
-            language = new Language("Plaintext", null);
-		}
-		else if (languageIndex == 1) {
-			String keysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b\r\n";
-			HighlightRule keywords = new HighlightRule("keywords", new String[] {keysString}, purple, false);
-			HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
-			HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
-			
-			language = new Language("Java", new HighlightRule[] {keywords, comment, stringDef});
-		}
+		language = languages[languageIndex];
+		highlight();
 	}
 	
 	public int getLangIndex() {
@@ -206,7 +183,7 @@ public class Tab {
 		System.out.println(name);
 	}
 	
-	public File getLocation() {
+	public File getDiskLocation() {
 		return diskLocation;
 	}
 }

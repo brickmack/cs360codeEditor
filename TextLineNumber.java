@@ -69,6 +69,31 @@ public class TextLineNumber extends JPanel
 		component.getDocument().addDocumentListener(this);
 		component.addCaretListener(this);
 		component.addPropertyChangeListener("font", this);
+		this.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				int x=e.getX();
+			    int y=e.getY();
+				System.out.println("Line number " + (lastLine + 1) + ", coords = (" + x + ", " + y + ")");
+				System.out.println(component.getParent().toString());
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+			}
+		});
 	}
 
 	/*
@@ -85,8 +110,7 @@ public class TextLineNumber extends JPanel
 	 *  updated automatically when the Font of the related text component
 	 *  is changed.
 	 *
-	 *  @param updateFont  when true update the Font and repaint the line
-	 *                     numbers, otherwise just repaint the line numbers.
+	 *  @param updateFont  when true update the Font and repaint the line numbers, otherwise just repaint the line numbers.
 	 */
 	public void setUpdateFont(boolean updateFont) {
 		this.updateFont = updateFont;
@@ -110,7 +134,7 @@ public class TextLineNumber extends JPanel
 	public void setBorderGap(int borderGap) {
 		this.borderGap = borderGap;
 		Border inner = new EmptyBorder(0, borderGap, 0, borderGap);
-		setBorder( new CompoundBorder(OUTER, inner) );
+		setBorder(new CompoundBorder(OUTER, inner));
 		lastDigits = 0;
 		setPreferredWidth();
 	}
@@ -320,8 +344,6 @@ public class TextLineNumber extends JPanel
 //Implement CaretListener interface
 	@Override
 	public void caretUpdate(CaretEvent e) {
-		//Get the line the caret is positioned on
-
 		int caretPosition = component.getCaretPosition();
 		Element root = component.getDocument().getDefaultRootElement();
 		int currentLine = root.getElementIndex( caretPosition );
