@@ -21,6 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.text.BadLocationException;
 
 public class TabWindow extends JFrame {
 	private JTabbedPaneCloseable tabbedPane = new JTabbedPaneCloseable();
@@ -41,6 +42,13 @@ public class TabWindow extends JFrame {
 	private JMenuItem fileMenuClose;
 	
 	private static Language[] languages;
+	private JMenuItem test;
+	private JMenuItem forMenuItem;
+	private JMenuItem whileMenuItem;
+	private JMenuItem ifElseMenuItem;
+	private InsertableCode insertCode;
+	private JMenuItem doWhileMenuItem;
+	private JMenuItem ifElseIfMenuItem;
 	
 	public static void main(String[] args) {
 		loadLanguages();
@@ -63,6 +71,7 @@ public class TabWindow extends JFrame {
 	}
 	
 	public TabWindow() {
+		insertCode = new InsertableCode();
  		this.addKeyListener(new Key());
  		
 		setSize(900, 700);
@@ -106,16 +115,29 @@ public class TabWindow extends JFrame {
 		JMenu insertMenu = new JMenu("Insert");
 		menuBar.add(insertMenu);
 		
-		JMenuItem test = new JMenuItem("Test");
+		test = new JMenuItem("Test");
 		insertMenu.add(test);
-		test.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //String selected = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getSelectedText();
-                //System.out.println(selected);
-                
-                updateInsertMenu(1);
-            }
-        });
+		
+		forMenuItem = new JMenuItem("For Loop");
+		insertMenu.add(forMenuItem);
+		forMenuItem.addActionListener(new ButtonHandler());
+		
+		doWhileMenuItem = new JMenuItem("Do While");
+		insertMenu.add(doWhileMenuItem);
+		doWhileMenuItem.addActionListener(new ButtonHandler());
+		
+		whileMenuItem = new JMenuItem("While Loop");
+		insertMenu.add(whileMenuItem);
+		whileMenuItem.addActionListener(new ButtonHandler());
+		
+		ifElseMenuItem = new JMenuItem("If Else");
+		insertMenu.add(ifElseMenuItem);
+		ifElseMenuItem.addActionListener(new ButtonHandler());
+		
+		ifElseIfMenuItem = new JMenuItem("If Else If ");
+		insertMenu.add(ifElseIfMenuItem);
+		ifElseIfMenuItem.addActionListener(new ButtonHandler());
+
 	}
 	
 	public void fileMenuSetup() {
@@ -299,6 +321,23 @@ public class TabWindow extends JFrame {
 		}
 	}
 	
+	public void saveAsFile() {
+		try {
+			JFileChooser j = new JFileChooser();
+			int result = j.showSaveDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File file = j.getSelectedFile();
+				BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+				bw.write(tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getText());
+				bw.close();
+		}
+		}
+		catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+	
+	
 	public void saveFile() {
 		String name = tabs.get(tabbedPane.getSelectedIndex()).getName();
 		if (name.equals("New tab")) {
@@ -331,12 +370,58 @@ public class TabWindow extends JFrame {
 				createNewTab("New tab");
 			}
 			else if (e.getSource() == fileMenuSaveAs) {
-				
+				saveAsFile();
 			}
 			else if (e.getSource() == fileMenuClose) {
 				System.exit(0);
 			}
+			else if(e.getSource() == whileMenuItem) {
+				int positon = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getCaretPosition();
+				try {
+					tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getDocument().insertString(positon,insertCode.getWhile(), null);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==forMenuItem) {
+				int positon = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getCaretPosition();
+				try {
+					tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getDocument().insertString(positon,insertCode.getFor(), null);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==doWhileMenuItem) {
+				int positon = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getCaretPosition();
+				try {
+					tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getDocument().insertString(positon,insertCode.getDoWhile(), null);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==ifElseMenuItem) {
+				int positon = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getCaretPosition();
+				try {
+					tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getDocument().insertString(positon,insertCode.getIfElse(), null);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			else if(e.getSource()==ifElseIfMenuItem) {
+				int positon = tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getCaretPosition();
+				try {
+					tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getDocument().insertString(positon,insertCode.getIfElseIfElse(), null);
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 		}
+
 	}
 	
 	private class Key implements KeyListener {
