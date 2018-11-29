@@ -1,13 +1,14 @@
 package cs360ProjectImplementation;
 
 public class InsertableCode {
-	/*
 	private String name;
-	private String code;
+	private String codeStart;
+	private String codeEnd;
 	
-	public InsertableCode(String name, String code) {
+	public InsertableCode(String name, String codeStart, String codeEnd) {
 		this.name = name;
-		this.code = code;
+		this.codeStart = codeStart;
+		this.codeEnd = codeEnd;
 	}
 	
 	public String getName() {
@@ -15,33 +16,10 @@ public class InsertableCode {
 	}
 	
 	public String getCode() {
-		return code;
-	}
-	*/
-	
-	// ... wow https://i.imgur.com/vl2hxYW.png
-	
-	public InsertableCode() {
-		
+		return codeStart + " " + codeEnd;
 	}
 	
-	public String getWhile() {
- 		return "while()\n{\n}";
+	public String getCode(String selected) {
+		return codeStart + selected + codeEnd;
 	}
-	
-	public String getFor() {
- 		return "for( , , ){\n}";
-	}
-	
-	public String getIfElse() {
- 		return "if(){\n}\nelse{\n}";
-	}
-	
- 	public String getIfElseIfElse() {
- 		return "if(){\n}\nelse if(){\n}\nelse{\n}";
- 	}
- 	
- 	public String getDoWhile() {
- 		return "do {\n}while();";
- 	}
 }

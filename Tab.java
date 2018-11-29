@@ -23,7 +23,7 @@ public class Tab extends JPanel {
 	private JTextPaneCollapsible textPane; //replace with private JTextPane textPane to disable the test collapse feature
 	private int languageIndex = 0;
 	private Language[] languages;
-	private Language language = new Language("Plaintext", null, ".txt");
+	private Language language = new Language("Plaintext", null, ".txt", null);
 	private boolean enabled = false;
 	private File diskLocation;
 	private ArrayList<String> variables;
@@ -67,6 +67,10 @@ public class Tab extends JPanel {
 		
 		TextLineNumber tln = new TextLineNumber(textPane);
 		scroller.setRowHeaderView(tln);
+	}
+	
+	public void insertAtCaret() {
+		
 	}
 	
 	public String getName() {

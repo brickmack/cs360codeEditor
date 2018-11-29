@@ -5,12 +5,13 @@ public class Language {
 	private HighlightRule[] rules;
 	private String fileExtension;
 	private String blockDesignator;
-	private InsertableCode[] insertable;
+	private InsertableCode[] insertables;
 	
-	public Language(String name, HighlightRule[] rules, String fileExtension) {
+	public Language(String name, HighlightRule[] rules, String fileExtension, InsertableCode[] insertables) {
 		this.name = name;
 		this.rules = rules;
 		this.fileExtension = fileExtension;
+		this.insertables = insertables;
 	}
 	
 	public String getName() {
@@ -30,10 +31,10 @@ public class Language {
 	}
 	
 	public InsertableCode getInsertableCode(int i) {
-		return insertable[i];
+		return insertables[i];
 	}
 	
 	public InsertableCode[] getInsertableCode() {
-		return insertable;
+		return insertables;
 	}
 }
