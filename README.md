@@ -2,18 +2,18 @@
 
 To Do:
 
-*Save (Aaron)
+*Tab rename when file is saved (Aaron) (critical)
 
-*Tab rename (Aaron)
+*Find function (Austin) (critical)
 
-*Find function (Austin)
+*Find/replace regex mode (Austin) (low priority)
 
-*Find/replace regex mode (Austin)
+*Fix issues with redo (Mack) (medium priority)
 
-*Fix issues with redo (Mack)
+*Keyboard shortcuts (Aaron) (low priority)
 
-*Keyboard shortcuts (Aaron)
+*Detect variable declarations (Mack) (low priority)
 
-*Detect variable declarations (Mack)
+*tab size (Mack) (low priority)
 
-*Real-time insertion of foldable code blocks, nested foldable blocks, code folding logic (Mack, and someone else please help)
+*confirm if you want to close a tab with unsaved changes (Mack) (medium priority)
