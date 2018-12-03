@@ -4,7 +4,7 @@ To Do:
 
 *Tab rename when file is saved (Aaron) (critical)
 
-*Find function (Austin) (critical)
+*Find function (Austin) (high priority)
 
 *Find/replace regex mode (Austin) (low priority)
 
