@@ -218,9 +218,24 @@ public class TabWindow extends JFrame {
 		editMenuFindReplace.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				FindReplacePopup findReplace = new FindReplacePopup();
-				findReplace.getFindNextButton().addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent arg0) {
-						System.out.println("Find " + findReplace.getFindQuery() + " in tab " + tabbedPane.getSelectedIndex());
+				findReplace.getreplaceNextButton().addActionListener(new ActionListener() {
+					//Replace Next get the string from the replace text box and replaces the first instance of it in the current file
+					public void actionPerformed(ActionEvent FR) {
+						//System.out.println("Find " + findReplace.getFindQuery() + " in tab " + tabbedPane.getSelectedIndex());
+						String text = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getText();
+						String find = findReplace.getFindQuery();
+						String replace = findReplace.getReplaceTerm();
+						text = text.replaceFirst(find, replace);
+						((Tab) tabbedPane.getSelectedComponent()).getTextPane().setText(text);
+					}
+				});
+				findReplace.getReplaceAllButton().addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent FR) {
+						String text = ((Tab) tabbedPane.getSelectedComponent()).getTextPane().getText();
+						String find = findReplace.getFindQuery();
+						String replace = findReplace.getReplaceTerm();
+						text = text.replaceAll(find, replace);
+						((Tab) tabbedPane.getSelectedComponent()).getTextPane().setText(text);
 					}
 				});
 			}
