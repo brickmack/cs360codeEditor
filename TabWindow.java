@@ -82,7 +82,7 @@ public class TabWindow extends JFrame {
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		
 		//blank tab
-		createNewTab("New tab");
+		createNewTab(null);
 		
 		System.out.println(tabbedPane.getSelectedComponent().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
 		((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
@@ -303,9 +303,18 @@ public class TabWindow extends JFrame {
 		menuBar.add(languageMenu);
 	}
 	
-	public void createNewTab(String name) {
-		Tab newTab = new Tab(name, languages);
-		tabbedPane.addTab(name, null, newTab, null);
+	public void createNewTab(File file) {
+		Tab newTab;
+		if (file == null) {
+			newTab = new Tab("New tab", languages);
+			tabbedPane.addTab("New tab", null, newTab, null);
+		}
+		else {
+			String name = file.getName();
+			newTab = new Tab(name, languages);
+			newTab.setLocation(file);
+			tabbedPane.addTab(name, null, newTab, file.toString());
+		}
 		
 		//automatically shift the selection to the new tab
 		tabbedPane.setSelectedComponent(newTab);
@@ -332,7 +341,7 @@ public class TabWindow extends JFrame {
 			int result = j.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = j.getSelectedFile();
-				createNewTab(file.getName());
+				createNewTab(file);
 				
 				Scanner scanner = new Scanner(file);
 				String content = "";
@@ -413,7 +422,7 @@ public class TabWindow extends JFrame {
 				saveFile();
 			}
 			else if (e.getSource() == fileMenuNew) {
-				createNewTab("New tab");
+				createNewTab(null);
 			}
 			else if (e.getSource() == fileMenuSaveAs) {
 				saveAsFile();
