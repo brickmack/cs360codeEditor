@@ -176,7 +176,7 @@ public class Tab extends JPanel {
 		}
 	}
 	
-	public void setLocation(File diskLocation) {
+	public void setDiskLocation(File diskLocation) {
 		this.diskLocation = diskLocation;
 		
 		//set name by cutting off everything up to the last path separator

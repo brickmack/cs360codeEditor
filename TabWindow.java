@@ -312,7 +312,7 @@ public class TabWindow extends JFrame {
 		else {
 			String name = file.getName();
 			newTab = new Tab(name, languages);
-			newTab.setLocation(file);
+			newTab.setDiskLocation(file);
 			tabbedPane.addTab(name, null, newTab, file.toString());
 		}
 		
@@ -374,12 +374,13 @@ public class TabWindow extends JFrame {
 	}
 	
 	public void saveFile() {
-		String name = ((Tab) tabbedPane.getSelectedComponent()).getName();
-		if (name.equals("New tab")) {
+		File file = ((Tab) tabbedPane.getSelectedComponent()).getDiskLocation();
+		
+		if (file == null) {
+			System.out.println("disk location was not set");
 			saveAsFile();
 		}
 		else {
-			File file = new File(name);
 			try {
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
 				bw.write(activeTextPane().getText());
@@ -400,6 +401,8 @@ public class TabWindow extends JFrame {
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 				bw.write(activeTextPane().getText());
 				bw.close();
+				
+				((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
 			}
 		}
 		catch (Exception e) {
