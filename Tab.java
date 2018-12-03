@@ -2,6 +2,7 @@ package cs360ProjectImplementation;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -12,6 +13,11 @@ import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -20,7 +26,8 @@ public class Tab extends JPanel {
 	private String name;
 	private UserFile userFile;
 	private JScrollPane scroller;
-	private JTextPaneCollapsible textPane; //replace with private JTextPane textPane to disable the test collapse feature
+	//private JTextPaneCollapsible textPane;
+	private JTextPane textPane;
 	private int languageIndex = 0;
 	private Language[] languages;
 	private Language language = new Language("Plaintext", null, ".txt", null);
@@ -28,14 +35,18 @@ public class Tab extends JPanel {
 	private File diskLocation;
 	private ArrayList<String> variables;
 	
+	private boolean isSaved = true; //false if any changes have been made since the last save
+	
 	public Tab(String name, Language[] languages) {
 		super();
 		userFile = new UserFile();
 		this.name = name;
 		this.languages = languages;
 		setLayout(new BorderLayout(0, 0));
-		textPane = new JTextPaneCollapsible();
-	    
+		//textPane = new JTextPaneCollapsible();
+		textPane = new JTP();
+	    textPane.setFont(new Font("Arial", Font.PLAIN, 15));
+		
 		userFile.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
@@ -49,6 +60,7 @@ public class Tab extends JPanel {
 					highlight();
 					UserFile next = new UserFile();
 					next.setText(textPane.getText());
+					
 					userFile.setNext(next);
 					next.setPrev(userFile);
 					userFile = next;
@@ -67,10 +79,6 @@ public class Tab extends JPanel {
 		
 		TextLineNumber tln = new TextLineNumber(textPane);
 		scroller.setRowHeaderView(tln);
-	}
-	
-	public void insertAtCaret() {
-		
 	}
 	
 	public String getName() {
@@ -158,22 +166,13 @@ public class Tab extends JPanel {
 			if (userFile.hasPrev()) {
 				userFile = userFile.getPrev();
 			}
-			System.out.println("success undo");
-		}
-		else {
-			System.out.println("failed undo: " + userFile.getText());
 		}
 	}
 	
 	public void redo() {
 		if (userFile.hasNext()) {
 			userFile = userFile.getNext();
-			String newText = userFile.getText();
-			textPane.setText(newText);
-			System.out.println("success redo: " + userFile.getText());
-		}
-		else {
-			System.out.println("failed redo: " + userFile.getText());
+			textPane.setText(userFile.getText());
 		}
 	}
 	
@@ -190,4 +189,42 @@ public class Tab extends JPanel {
 	public File getDiskLocation() {
 		return diskLocation;
 	}
+}
+
+class JTP extends JTextPane {
+    JTP() {
+        ((AbstractDocument) getDocument()).setDocumentFilter(new Filter());
+    }
+}
+
+class Filter extends DocumentFilter {
+    @Override
+    public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+        StringBuilder indentatedString = new StringBuilder(string);
+        if (string.equals("\n")) {
+            AbstractDocument doc = ((AbstractDocument) fb.getDocument());
+            Element line = doc.getParagraphElement(offset);
+            int lineStart = line.getStartOffset(), lineEnd = line.getEndOffset();
+            String content = doc.getText(lineStart, lineEnd - lineStart);
+            int start = 0;
+            while (content.charAt(start) == ' ' || content.charAt(start) == '	') { //works with either tabs or spaces
+                indentatedString.insert(1, content.charAt(start));
+                start++;
+            }
+        }
+        fb.insertString(offset, indentatedString.toString(), attr);
+    }
+    @Override
+    public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+        if (text.length() == 0) {
+        	insertString(fb, offset, text, attrs);
+        }
+        else if (text.length() > 0) {
+        	remove(fb, offset, length);
+        	insertString(fb, offset, text, attrs);
+        }
+        else {
+        	fb.replace(offset, length, text, attrs);
+        }
+    }
 }

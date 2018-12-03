@@ -19,6 +19,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -53,17 +54,20 @@ public class TabWindow extends JFrame {
 		languages = new Language[3];
 		languages[0] = new Language("Plaintext", null, "txt", null);
 		
-		String keysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b\r\n";
-		HighlightRule keywords = new HighlightRule("keywords", new String[] {keysString}, purple, false);
-		HighlightRule stringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
-		HighlightRule comment = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
+		String javaKeysString = "\\babstract\\b|\\bassert\\b|\\bboolean\\b|\\bbreak\\b|\\bbyte\\b|\\bcase\\b|\\bcatch\\b|\\bchar\\b|\\bclass\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\bextends\\b|\\bfalse\\b|\\bfinal\\b|\\bfinally\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bimplements\\b|\\bimport\\b|\\binstanceof\\b|\\bint\\b|\\binterface\\b|\\blong\\b|\\bnative\\b|\\bnew\\b|\\bnull\\b|\\bpackage\\b|\\bprivate\\b|\\bprotected\\b|\\bpublic\\b|\\breturn\\b|\\bshort\\b|\\bstatic\\b|\\bstrictfp\\b|\\bsuper\\b|\\bswitch\\b|\\bsynchronized\\b|\\bthis\\b|\\bthrow\\b|\\bthrows\\b|\\btransient\\b|\\btrue\\b|\\btry\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b";
+		HighlightRule javaKeywords = new HighlightRule("keywords", new String[] {javaKeysString}, purple, false);
+		HighlightRule javaStringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+		HighlightRule javaCommentDef = new HighlightRule("comment", new String[] {"((?m)//(.*)$)|((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
 		
-		InsertableCode ifBlock = new InsertableCode("If", "if ( ) {\n", "\n}");
-		InsertableCode whileBlock = new InsertableCode("While", "while ( ) {\n", "\n}");
+		InsertableCode javaIfBlock = new InsertableCode("If", "if ( ) {", "}");
+		InsertableCode javaWhileBlock = new InsertableCode("While", "while ( ) {", "}");
 		
-		languages[1] = new Language("Java", new HighlightRule[] {keywords, comment, stringDef}, "java", new InsertableCode[] {ifBlock, whileBlock});
+		languages[1] = new Language("Java", new HighlightRule[] {javaKeywords, javaCommentDef, javaStringDef}, "java", new InsertableCode[] {javaIfBlock, javaWhileBlock});
 		
-		languages[2] = new Language("C", null, "c", null);
+		String cKeysString = "\\bauto\\b|\\bbreak\\b|\\bcase\\b|\\bchar\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\benum\\b|\\bextern\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bint\\b|\\blong\\b|\\bregister\\b|\\breturn\\b|\\bshort\\b|\\bsigned\\b|\\bsizeof\\b|\\bstatic\\b|\\bstruct\\b|\\bswitch\\b|\\btypedef\\b|\\bunion\\b|\\bunsigned\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b";
+		HighlightRule cKeywords = new HighlightRule("keywords", new String[] {cKeysString}, purple, false);
+		
+		languages[2] = new Language("C", new HighlightRule[] {cKeywords}, "c", null);
 	}
 	
 	public TabWindow() {
@@ -72,6 +76,7 @@ public class TabWindow extends JFrame {
 		setSize(900, 700);
 		setTitle("Code Editor");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setVisible(true);
 		
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
@@ -108,42 +113,49 @@ public class TabWindow extends JFrame {
 				Language selectedLang = languages[langIndex];
 				
 				if (menuBar.getMenu(3) != null) {
-					System.out.println("removed");
 					menuBar.remove(3);
 				}
 				
-				String out = "Got insertables for";
 				InsertableCode[] insertables = selectedLang.getInsertableCode();
 				
 				//validate that the Language actually has some insertables defined
 				if (insertables != null) {
 					for (int i=0; i<insertables.length; i++) {
-						out = out + " " + insertables[i].getName();
 						JMenuItem newItem = new JMenuItem(insertables[i].getName());
 						newItem.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
 								JMenuItem sourceItem = (JMenuItem) e.getSource();
 								String sourceName = sourceItem.getText();
 								
-								System.out.println("Clicked " + sourceName);
-								
 								//loop through the language object until we find the one with this name (kludgy, will consider making InsertableCode extend JMenuItem later?)
 								Language language = languages[((Tab) tabbedPane.getSelectedComponent()).getLangIndex()];
 								InsertableCode[] insertables = language.getInsertableCode();
 								for (int i=0; i<insertables.length; i++) {
 									if (insertables[i].getName().equals(sourceName)) {
-										System.out.println(insertables[i].getCode("test"));
+										String selected = activeTextPane().getSelectedText();
+										
+										activeTextPane().replaceSelection(" ");
+										
+										int position = activeTextPane().getCaretPosition();
+										
+										String[] insert = insertables[i].getCode(selected);
+										
+										try {
+											for (int j=0; j<insert.length; j++) {
+												activeTextPane().getStyledDocument().insertString(position, "\n", null);
+												activeTextPane().getStyledDocument().insertString(position, insert[j], null);
+												position = activeTextPane().getCaretPosition();
+											}
+										}
+										catch (BadLocationException ex) {
+											ex.printStackTrace();
+										}
 									}
 								}
-								
 							}
 						});
 						insertMenu.add(newItem);
 					}
-					System.out.println(out);
-				}
-				else {
-					System.out.println(selectedLang.getName() + " Had no insertables");
 				}
 				
 				insertMenu.addMenuListener(new MenuListener() {
@@ -199,7 +211,6 @@ public class TabWindow extends JFrame {
 		JMenuItem editMenuUndo = new JMenuItem("Undo");
 		editMenuUndo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("undo in tab " + tabbedPane.getSelectedIndex());
 				((Tab) tabbedPane.getSelectedComponent()).undo();
 			}
 		});
@@ -208,7 +219,6 @@ public class TabWindow extends JFrame {
 		JMenuItem editMenuRedo = new JMenuItem("Redo");
 		editMenuRedo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("redo in tab " + tabbedPane.getSelectedIndex());
 				((Tab) tabbedPane.getSelectedComponent()).redo();
 			}
 		});
@@ -218,9 +228,25 @@ public class TabWindow extends JFrame {
 		editMenuFindReplace.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				FindReplacePopup findReplace = new FindReplacePopup();
-				findReplace.getFindNextButton().addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent arg0) {
-						System.out.println("Find " + findReplace.getFindQuery() + " in tab " + tabbedPane.getSelectedIndex());
+				
+				findReplace.getreplaceNextButton().addActionListener(new ActionListener() {
+					//Replace Next get the string from the replace text box and replaces the first instance of it in the current file
+					public void actionPerformed(ActionEvent FR) {
+						String text = activeTextPane().getText();
+						String find = findReplace.getFindQuery();
+						String replace = findReplace.getReplaceTerm();
+						text = text.replaceFirst(find, replace);
+						activeTextPane().setText(text);
+					}
+				});
+				
+				findReplace.getReplaceAllButton().addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent FR) {
+						String text = activeTextPane().getText();
+						String find = findReplace.getFindQuery();
+						String replace = findReplace.getReplaceTerm();
+						text = text.replaceAll(find, replace);
+						activeTextPane().setText(text);
 					}
 				});
 			}
@@ -306,16 +332,13 @@ public class TabWindow extends JFrame {
 			int result = j.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = j.getSelectedFile();
-				System.out.println(file.toString());
 				createNewTab(file.getName());
 				
 				Scanner scanner = new Scanner(file);
 				String content = "";
 				while (true) {
 					content = content + scanner.nextLine();
-					System.out.println(content);
-					if (scanner.hasNextLine()) { // simultaneously tests whether or not a newline is needed, and whether
-													// or not another loop iteration is needed
+					if (scanner.hasNextLine()) { //simultaneously tests whether or not a newline is needed, and whether or not another loop iteration is needed
 						content = content + "\r\n";
 					}
 					else {
@@ -331,7 +354,7 @@ public class TabWindow extends JFrame {
 					}
 				}
 				
-				((Tab) tabbedPane.getSelectedComponent()).getTextPane().setText(content);
+				activeTextPane().setText(content);
 				((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 				scanner.close();
 			}
@@ -350,9 +373,8 @@ public class TabWindow extends JFrame {
 			File file = new File(name);
 			try {
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-				bw.write(((Tab) tabbedPane.getSelectedComponent()).getTextPane().getText());
+				bw.write(activeTextPane().getText());
 				bw.close();
-				System.out.println("Save success");
 			}
 			catch (Exception e) {
 				System.out.println(e.toString());
@@ -367,13 +389,18 @@ public class TabWindow extends JFrame {
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = j.getSelectedFile();
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-				//bw.write(tabs.get(tabbedPane.getSelectedIndex()).getTextPane().getText());
+				bw.write(activeTextPane().getText());
 				bw.close();
 			}
 		}
 		catch (Exception e) {
 			System.out.println(e);
 		}
+	}
+	
+	public JTextPane activeTextPane() {
+		//convenience
+		return ((Tab) tabbedPane.getSelectedComponent()).getTextPane();
 	}
 	
 	private class ButtonHandler implements ActionListener {
