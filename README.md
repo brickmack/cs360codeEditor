@@ -2,18 +2,18 @@
 
 To Do:
 
-*Tab rename when file is saved (Aaron) (critical)
+*Tab rename when file is saved (critical)
 
-*Find function (Austin) (high priority)
+*Find function (high priority)
 
-*Find/replace regex mode (Austin) (low priority)
+*Find/replace regex mode (low priority)
 
-*Fix issues with redo (Mack) (medium priority)
+*Fix issues with redo (medium priority)
 
-*Keyboard shortcuts (Aaron) (low priority)
+*Keyboard shortcuts (low priority)
 
-*Detect variable declarations (Mack) (low priority)
+*Detect variable declarations (low priority)
 
-*tab size (Mack) (low priority)
+*tab size (low priority)
 
-*confirm if you want to close a tab with unsaved changes (Mack) (medium priority)
+*refactoring
