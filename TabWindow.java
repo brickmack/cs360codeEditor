@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import javax.swing.text.BadLocationException; 
 import java.util.Scanner;
@@ -61,13 +62,22 @@ public class TabWindow extends JFrame {
 		
 		InsertableCode javaIfBlock = new InsertableCode("If", "if ( ) {", "}");
 		InsertableCode javaWhileBlock = new InsertableCode("While", "while ( ) {", "}");
+		InsertableCode javaIfElseBlock = new InsertableCode("If Else", "if ( ) {\n}\nelse {", "}");
+		InsertableCode javaDoWhileBlock = new InsertableCode("Do While", "do{ ", "}while ( )");
 		
-		languages[1] = new Language("Java", new HighlightRule[] {javaKeywords, javaCommentDef, javaStringDef}, "java", new InsertableCode[] {javaIfBlock, javaWhileBlock});
+		InsertableCode cIfBlock = new InsertableCode("If", "if ( ) {", "}");
+		InsertableCode cWhileBlock = new InsertableCode("While", "while ( ) {", "}");
+		InsertableCode cIfElseBlock = new InsertableCode("If Else", "if ( ) {\n}\nelse {", "}");
+		InsertableCode cDoWhileBlock = new InsertableCode("Do While", "do{ ", "}while ( )");
+		
+		
+		
+		languages[1] = new Language("Java", new HighlightRule[] {javaKeywords, javaCommentDef, javaStringDef}, "java", new InsertableCode[] {javaIfBlock, javaWhileBlock,javaIfElseBlock,javaDoWhileBlock});
 		
 		String cKeysString = "\\bauto\\b|\\bbreak\\b|\\bcase\\b|\\bchar\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\benum\\b|\\bextern\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bint\\b|\\blong\\b|\\bregister\\b|\\breturn\\b|\\bshort\\b|\\bsigned\\b|\\bsizeof\\b|\\bstatic\\b|\\bstruct\\b|\\bswitch\\b|\\btypedef\\b|\\bunion\\b|\\bunsigned\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b";
 		HighlightRule cKeywords = new HighlightRule("keywords", new String[] {cKeysString}, purple, false);
 		
-		languages[2] = new Language("C", new HighlightRule[] {cKeywords}, "c", null);
+		languages[2] = new Language("C", new HighlightRule[] {cKeywords}, "c", new InsertableCode[] {cIfBlock, cWhileBlock,cIfElseBlock,cDoWhileBlock});
 	}
 	
 	public TabWindow() {
@@ -372,6 +382,40 @@ public class TabWindow extends JFrame {
 			System.out.println(e);
 		}
 	}
+	public void openSaveAsFile(File file) {
+		Scanner scanner;
+		try {
+			scanner = new Scanner(file);
+			String content = "";
+			createNewTab(file);
+			while (true) {
+				content = content + scanner.nextLine();
+				if (scanner.hasNextLine()) { //simultaneously tests whether or not a newline is needed, and whether or not another loop iteration is needed
+					content = content + "\r\n";
+				}
+				else {
+					break;
+				}
+			}
+			
+			//set language
+			String extension = getFileExtension(file);
+			for (int i=0; i<languages.length; i++) {
+				if (languages[i].getFileExtension().equals(extension)) {
+					((Tab) tabbedPane.getSelectedComponent()).setLangIndex(i);
+				}
+			}
+			
+			activeTextPane().setText(content);
+			((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
+			((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 	
 	public void saveFile() {
 		File file = ((Tab) tabbedPane.getSelectedComponent()).getDiskLocation();
@@ -401,8 +445,8 @@ public class TabWindow extends JFrame {
 				BufferedWriter bw = new BufferedWriter(new FileWriter(file));
 				bw.write(activeTextPane().getText());
 				bw.close();
-				
-				((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
+				openSaveAsFile(file);
+	
 			}
 		}
 		catch (Exception e) {
