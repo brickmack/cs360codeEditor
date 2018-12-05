@@ -2,7 +2,7 @@
 
 To Do:
 
-*Tab rename when file is saved (critical)
+*Fix bug with tooltipped tabs only being selectable in some areas (found a solution, have to implement) (high priority)
 
 *Find function (high priority)
 
