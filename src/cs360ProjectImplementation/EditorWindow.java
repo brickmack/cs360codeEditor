@@ -23,7 +23,7 @@ import javax.swing.JTextPane;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-public class TabWindow extends JFrame {
+public class EditorWindow extends JFrame {
 	private JTabbedPaneCloseable tabbedPane = new JTabbedPaneCloseable();
 	private JMenuBar menuBar = new JMenuBar();
 	
@@ -42,7 +42,7 @@ public class TabWindow extends JFrame {
 	public static void main(String[] args) {
 		loadLanguages();
 		
-		new TabWindow();
+		new EditorWindow();
 	}
 	
 	public static void loadLanguages() {
@@ -66,7 +66,7 @@ public class TabWindow extends JFrame {
 		}
 	}
 	
-	public TabWindow() {
+	public EditorWindow() {
  		this.addKeyListener(new Key());
  		
 		setSize(900, 700);
@@ -412,7 +412,6 @@ public class TabWindow extends JFrame {
 				bw.close();
 				
 				((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
-				
 				
 				//create a new tab with the same values as the old one, except name and tooltip, and set its disk location
 				Tab oldTab = ((Tab) tabbedPane.getSelectedComponent());

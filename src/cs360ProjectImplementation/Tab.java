@@ -24,7 +24,7 @@ import javax.swing.text.StyledDocument;
 
 public class Tab extends JPanel {
 	private String name;
-	private UserFile fileStates;
+	private FileState fileStates;
 	private JScrollPane scroller;
 	//private JTextPaneCollapsible textPane;
 	private JTextPane textPane;
@@ -33,13 +33,13 @@ public class Tab extends JPanel {
 	private Language language = new Language("Plaintext", null, ".txt", null);
 	private boolean enabled = false;
 	private File diskLocation;
-	private TabWindow parentFrame; //not very pretty, but we need a reference back to the parent
+	private EditorWindow parentFrame; //not very pretty, but we need a reference back to the parent
 	private boolean isSaved = true; //false if any changes have been made since the last save
 	
-	public Tab(String name, Language[] languages, TabWindow parentFrame) {
+	public Tab(String name, Language[] languages, EditorWindow parentFrame) {
 		super();
 		
-		fileStates = new UserFile();
+		fileStates = new FileState();
 		this.name = name;
 		this.languages = languages;
 		this.parentFrame = parentFrame;
@@ -61,7 +61,7 @@ public class Tab extends JPanel {
 				if (enabled == true) {
 					highlight();
 					
-					UserFile next = new UserFile();
+					FileState next = new FileState();
 					next.setText(textPane.getText());
 					
 					fileStates.setNext(next);
@@ -173,9 +173,6 @@ public class Tab extends JPanel {
 		if (fileStates.hasPrev()) {
 			fileStates = fileStates.getPrev();
 			textPane.setText(fileStates.getText());
-			if (fileStates.hasPrev()) {
-				fileStates = fileStates.getPrev();
-			}
 		}
 		enabled = true;
 	}

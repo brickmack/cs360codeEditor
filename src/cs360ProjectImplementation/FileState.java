@@ -1,18 +1,11 @@
 package cs360ProjectImplementation;
 
-public class UserFile {
+public class FileState {
 	private String text;
-	private UserFile prevVersion;
-	private UserFile nextVersion;
-	private CodeBlock blocks;
+	private FileState prevVersion;
+	private FileState nextVersion;
 	
-	public UserFile() {
-	}
-	
-	public UserFile(String text, UserFile prevVersion, UserFile nextVersion) {
-		this.text = text;
-		this.prevVersion = prevVersion;
-		this.nextVersion = nextVersion;
+	public FileState() {
 	}
 	
 	public boolean hasPrev() {
@@ -37,19 +30,19 @@ public class UserFile {
 		this.text = text;
 	}
 	
-	public UserFile getPrev() {
+	public FileState getPrev() {
 		return prevVersion;
 	}
 	
-	public void setPrev(UserFile prevVersion) {
+	public void setPrev(FileState prevVersion) {
 		this.prevVersion = prevVersion;
 	}
 	
-	public UserFile getNext() {
+	public FileState getNext() {
 		return nextVersion;
 	}
 	
-	public void setNext(UserFile nextVersion) {
+	public void setNext(FileState nextVersion) {
 		this.nextVersion = nextVersion;
 	}
 }
