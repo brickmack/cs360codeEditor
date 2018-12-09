@@ -89,7 +89,6 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
                 if (((Tab) tab).canClose() == true) {
                 	tabbedPane.remove(tab);
                 }
-                //tabbedPane.remove(tab);
             }
         }
 

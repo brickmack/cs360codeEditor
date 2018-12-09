@@ -42,12 +42,15 @@ public class LanguageBuilder {
 		String cKeysString = "\\bauto\\b|\\bbreak\\b|\\bcase\\b|\\bchar\\b|\\bconst\\b|\\bcontinue\\b|\\bdefault\\b|\\bdo\\b|\\bdouble\\b|\\belse\\b|\\benum\\b|\\bextern\\b|\\bfloat\\b|\\bfor\\b|\\bgoto\\b|\\bif\\b|\\bint\\b|\\blong\\b|\\bregister\\b|\\breturn\\b|\\bshort\\b|\\bsigned\\b|\\bsizeof\\b|\\bstatic\\b|\\bstruct\\b|\\bswitch\\b|\\btypedef\\b|\\bunion\\b|\\bunsigned\\b|\\bvoid\\b|\\bvolatile\\b|\\bwhile\\b";
 		HighlightRule cKeywords = new HighlightRule("keywords", new String[] {cKeysString}, purple, false);
 		
+		HighlightRule cStringDef = new HighlightRule("string", new String[] {"(\"([^\"]*)\")"}, Color.blue, false);
+		HighlightRule cCommentDef = new HighlightRule("comment", new String[] {"((?s)/\\*(.*?)\\*/)"}, darkGreen, true);
+		
 		InsertableCode cIfBlock = new InsertableCode("If", "if ( ) {", "}");
 		InsertableCode cWhileBlock = new InsertableCode("While", "while ( ) {", "}");
 		InsertableCode cIfElseBlock = new InsertableCode("If Else", "if ( ) {\n}\nelse {", "}");
 		InsertableCode cDoWhileBlock = new InsertableCode("Do While", "do{ ", "}while ( )");
 		
-		return new Language("C", new HighlightRule[] {cKeywords}, "c", new InsertableCode[] {cIfBlock, cWhileBlock,cIfElseBlock,cDoWhileBlock});
+		return new Language("C", new HighlightRule[] {cKeywords, cStringDef, cCommentDef}, "c", new InsertableCode[] {cIfBlock, cWhileBlock,cIfElseBlock,cDoWhileBlock});
 	}
 	
 	public static Language generateJava() {

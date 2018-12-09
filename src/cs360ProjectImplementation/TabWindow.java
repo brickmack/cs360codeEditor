@@ -27,9 +27,9 @@ public class TabWindow extends JFrame {
 	private JTabbedPaneCloseable tabbedPane = new JTabbedPaneCloseable();
 	private JMenuBar menuBar = new JMenuBar();
 	
+	private static Language[] languages;
 	private JRadioButtonMenuItem languageMenuItems[];
-	
-	private boolean setup = true; //Dont want to enable triggers for Highlight and stuff while everything is still loading, or it breaks stuff
+	private int menuLanguage = -1; //nonexistent, default
 	
 	private JMenuItem fileMenuOpen;
 	private JMenuItem fileMenuNew;
@@ -37,11 +37,7 @@ public class TabWindow extends JFrame {
 	private JMenuItem fileMenuSaveAs;
 	private JMenuItem fileMenuClose;
 	
-	private int menuLanguage = -1;
-	
-	private File lastPath;
-	
-	private static Language[] languages;
+	private File lastPath; //tracks the last path the user either saved to or opened from, to set path for file dialog
 	
 	public static void main(String[] args) {
 		loadLanguages();
@@ -88,8 +84,6 @@ public class TabWindow extends JFrame {
 		((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 		
 		menuSetup();
-		
-		setup = false;
 	}
 	
 	public void menuSetup() {
@@ -319,9 +313,7 @@ public class TabWindow extends JFrame {
 		//automatically shift the selection to the new tab
 		tabbedPane.setSelectedComponent(newTab);
 		
-		if (setup == false) {
-			newTab.enableTriggers();
-		}
+		newTab.enableTriggers();
 	}
 	
 	public String getFileExtension(File file) {
@@ -396,6 +388,8 @@ public class TabWindow extends JFrame {
 				bw.write(activeTextPane().getText());
 				bw.close();
 				
+				((Tab) tabbedPane.getSelectedComponent()).setSaved(); //tell Tab we saved its file
+				
 				return 1;
 			}
 			catch (Exception e) {
@@ -419,8 +413,11 @@ public class TabWindow extends JFrame {
 				
 				((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
 				
+				
 				//create a new tab with the same values as the old one, except name and tooltip, and set its disk location
 				Tab oldTab = ((Tab) tabbedPane.getSelectedComponent());
+				
+				((Tab) tabbedPane.getSelectedComponent()).setSaved(); //tell Tab we saved its file
 				
 				tabbedPane.remove(tabbedPane.getSelectedIndex());
 				

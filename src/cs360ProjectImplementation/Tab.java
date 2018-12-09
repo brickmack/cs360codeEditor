@@ -4,11 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -27,7 +24,7 @@ import javax.swing.text.StyledDocument;
 
 public class Tab extends JPanel {
 	private String name;
-	private UserFile userFile;
+	private UserFile fileStates;
 	private JScrollPane scroller;
 	//private JTextPaneCollapsible textPane;
 	private JTextPane textPane;
@@ -36,15 +33,13 @@ public class Tab extends JPanel {
 	private Language language = new Language("Plaintext", null, ".txt", null);
 	private boolean enabled = false;
 	private File diskLocation;
-	
 	private TabWindow parentFrame; //not very pretty, but we need a reference back to the parent
-	
 	private boolean isSaved = true; //false if any changes have been made since the last save
 	
 	public Tab(String name, Language[] languages, TabWindow parentFrame) {
 		super();
 		
-		userFile = new UserFile();
+		fileStates = new UserFile();
 		this.name = name;
 		this.languages = languages;
 		this.parentFrame = parentFrame;
@@ -54,7 +49,7 @@ public class Tab extends JPanel {
 		textPane = new JTP();
 	    textPane.setFont(new Font("Arial", Font.PLAIN, 15));
 		
-		userFile.setText("");
+		fileStates.setText("");
 		
 		textPane.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -65,12 +60,13 @@ public class Tab extends JPanel {
 			public void insertUpdate(DocumentEvent e) {
 				if (enabled == true) {
 					highlight();
+					
 					UserFile next = new UserFile();
 					next.setText(textPane.getText());
 					
-					userFile.setNext(next);
-					next.setPrev(userFile);
-					userFile = next;
+					fileStates.setNext(next);
+					next.setPrev(fileStates);
+					fileStates = next;
 					
 					isSaved = false;
 				}
@@ -80,6 +76,8 @@ public class Tab extends JPanel {
 			public void removeUpdate(DocumentEvent e) {
 				if (enabled == true) {
 					highlight();
+					
+					
 					
 					isSaved = false;
 				}
@@ -171,20 +169,24 @@ public class Tab extends JPanel {
 	}
 	
 	public void undo() {
-		if (userFile.hasPrev()) {
-			userFile = userFile.getPrev();
-			textPane.setText(userFile.getText());
-			if (userFile.hasPrev()) {
-				userFile = userFile.getPrev();
+		enabled = false;
+		if (fileStates.hasPrev()) {
+			fileStates = fileStates.getPrev();
+			textPane.setText(fileStates.getText());
+			if (fileStates.hasPrev()) {
+				fileStates = fileStates.getPrev();
 			}
 		}
+		enabled = true;
 	}
 	
 	public void redo() {
-		if (userFile.hasNext()) {
-			userFile = userFile.getNext();
-			textPane.setText(userFile.getText());
+		enabled = false;
+		if (fileStates.hasNext()) {
+			fileStates = fileStates.getNext();
+			textPane.setText(fileStates.getText());
 		}
+		enabled = true;
 	}
 	
 	public void setDiskLocation(File diskLocation) {
@@ -198,6 +200,11 @@ public class Tab extends JPanel {
 	
 	public File getDiskLocation() {
 		return diskLocation;
+	}
+	
+	public void setSaved() {
+		//tells the Tab that EditorWindow has saved it, so closing is now safe
+		isSaved = true;
 	}
 	
 	public boolean canClose() {
@@ -234,7 +241,7 @@ class JTP extends JTextPane {
 class Filter extends DocumentFilter {
     @Override
     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-        StringBuilder indentatedString = new StringBuilder(string);
+        StringBuilder indentedString = new StringBuilder(string);
         if (string.equals("\n")) {
             AbstractDocument doc = ((AbstractDocument) fb.getDocument());
             Element line = doc.getParagraphElement(offset);
@@ -242,11 +249,11 @@ class Filter extends DocumentFilter {
             String content = doc.getText(lineStart, lineEnd - lineStart);
             int start = 0;
             while (content.charAt(start) == ' ' || content.charAt(start) == '	') { //works with either tabs or spaces
-                indentatedString.insert(1, content.charAt(start));
+                indentedString.insert(1, content.charAt(start));
                 start++;
             }
         }
-        fb.insertString(offset, indentatedString.toString(), attr);
+        fb.insertString(offset, indentedString.toString(), attr);
     }
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
