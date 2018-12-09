@@ -1,3 +1,10 @@
+/*
+ * HighlightRule
+ * 
+ * contains an array of regular expressions, used to describe some syntax or keywords of a language, and a Color which should be used
+ * to highlight that type of syntax/keyword
+ */
+
 package cs360ProjectImplementation;
 
 import java.awt.Color;

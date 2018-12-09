@@ -1,3 +1,11 @@
+/*
+ * FileState
+ * 
+ * Contains a String representation of the entire open file, and links to two other FileState objects (previous and next)
+ * 
+ * Used to undo and redo changes.
+ */
+
 package cs360ProjectImplementation;
 
 public class FileState {

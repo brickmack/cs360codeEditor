@@ -1,3 +1,9 @@
+/*
+ * FindReplacePopup
+ * 
+ * JFrame window used to control find and replace operations
+ */
+
 package cs360ProjectImplementation;
 
 import javax.swing.JButton;

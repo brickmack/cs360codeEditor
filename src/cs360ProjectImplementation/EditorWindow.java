@@ -1,10 +1,14 @@
+/*
+ * EditorWindow
+ * 
+ * main window for the program
+ */
+
 package cs360ProjectImplementation;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -67,8 +71,6 @@ public class EditorWindow extends JFrame {
 	}
 	
 	public EditorWindow() {
- 		this.addKeyListener(new Key());
- 		
 		setSize(900, 700);
 		setTitle("Code Editor");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -163,6 +165,7 @@ public class EditorWindow extends JFrame {
 
 					@Override
 					public void menuSelected(MenuEvent e) {
+						//each time the insert menu is selected, we check if it needs to be updated
 						insertMenuSetup();
 					}
 				});
@@ -205,7 +208,7 @@ public class EditorWindow extends JFrame {
 		JMenuItem editMenuUndo = new JMenuItem("Undo");
 		editMenuUndo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				((Tab) tabbedPane.getSelectedComponent()).undo();
+				activeTab().undo();
 			}
 		});
 		editMenu.add(editMenuUndo);
@@ -213,7 +216,7 @@ public class EditorWindow extends JFrame {
 		JMenuItem editMenuRedo = new JMenuItem("Redo");
 		editMenuRedo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				((Tab) tabbedPane.getSelectedComponent()).redo();
+				activeTab().redo();
 			}
 		});
 		editMenu.add(editMenuRedo);
@@ -266,8 +269,8 @@ public class EditorWindow extends JFrame {
 					for (int i=0; i<languages.length; i++) {
 						if (clickedText.equals(languages[i].getName())) {
 							//we need to set the language in the current tab
-							((Tab) tabbedPane.getSelectedComponent()).setLangIndex(i);
-							((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
+							activeTab().setLangIndex(i);
+							activeTab().enableTriggers();
 						}
 					}
 				}
@@ -288,32 +291,13 @@ public class EditorWindow extends JFrame {
 			@Override
 			public void menuSelected(MenuEvent e) {
 				//we need to check which language the current tab is set to and set the radiobutton appropriately
-				int currentTabLang = ((Tab) tabbedPane.getSelectedComponent()).getLangIndex();
+				int currentTabLang = activeTab().getLangIndex();
 				
 				languageMenuItems[currentTabLang].setSelected(true);
 			}
 		});
 		
 		menuBar.add(languageMenu);
-	}
-	
-	public void createNewTab(File file) {
-		Tab newTab;
-		if (file == null) {
-			newTab = new Tab("New tab", languages, this);
-			tabbedPane.addTab("New tab", null, newTab, null);
-		}
-		else {
-			String name = file.getName();
-			newTab = new Tab(name, languages, this);
-			newTab.setDiskLocation(file);
-			tabbedPane.addTab(name, null, newTab, file.toString());
-		}
-		
-		//automatically shift the selection to the new tab
-		tabbedPane.setSelectedComponent(newTab);
-		
-		newTab.enableTriggers();
 	}
 	
 	public String getFileExtension(File file) {
@@ -335,15 +319,26 @@ public class EditorWindow extends JFrame {
 		return new JFileChooser(lastPath);
 	}
 	
-	public void openFile() {
-		try {
-			JFileChooser j = chooserWithPath();
-			int result = j.showOpenDialog(this);
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File file = j.getSelectedFile();
-				lastPath = new File(file.getAbsoluteFile().getParent());
-				createNewTab(file);
-				
+	public void createNewTab(File file) {
+		Tab newTab;
+		if (file == null) {
+			newTab = new Tab("New tab", languages, this);
+			tabbedPane.addTab("New tab", null, newTab, null);
+		}
+		else {
+			String name = file.getName();
+			newTab = new Tab(name, languages, this);
+			newTab.setDiskLocation(file);
+			
+			//set language
+			String extension = getFileExtension(file);
+			for (int i=0; i<languages.length; i++) {
+				if (languages[i].getFileExtension().equals(extension)) {
+					newTab.setLangIndex(i);
+				}
+			}
+			
+			try {
 				Scanner scanner = new Scanner(file);
 				String content = "";
 				while (true) {
@@ -355,18 +350,33 @@ public class EditorWindow extends JFrame {
 						break;
 					}
 				}
-				
-				//set language
-				String extension = getFileExtension(file);
-				for (int i=0; i<languages.length; i++) {
-					if (languages[i].getFileExtension().equals(extension)) {
-						((Tab) tabbedPane.getSelectedComponent()).setLangIndex(i);
-					}
-				}
-				
-				activeTextPane().setText(content);
-				((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
 				scanner.close();
+				
+				newTab.getTextPane().setText(content);
+				newTab.enableTriggers();
+				newTab.setSaved();
+			}
+			catch (Exception ex) {
+				System.out.println(ex.toString());
+			}
+			
+			tabbedPane.addTab(name, null, newTab, file.toString());
+		}
+		
+		//automatically shift the selection to the new tab
+		tabbedPane.setSelectedComponent(newTab);
+		
+		newTab.enableTriggers();
+	}
+	
+	public void openFile() {
+		try {
+			JFileChooser j = chooserWithPath();
+			int result = j.showOpenDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File file = j.getSelectedFile();
+				lastPath = new File(file.getAbsoluteFile().getParent());
+				createNewTab(file);
 			}
 		}
 		catch (Exception e) {
@@ -376,7 +386,7 @@ public class EditorWindow extends JFrame {
 	
 	public int saveFile() {
 		//0 = success, 1 = error, -1 = canceled (in saveAsFile())
-		File file = ((Tab) tabbedPane.getSelectedComponent()).getDiskLocation();
+		File file = activeTab().getDiskLocation();
 		
 		if (file == null) {
 			System.out.println("disk location was not set");
@@ -438,8 +448,11 @@ public class EditorWindow extends JFrame {
 	}
 	
 	public JTextPane activeTextPane() {
-		//convenience
 		return ((Tab) tabbedPane.getSelectedComponent()).getTextPane();
+	}
+	
+	public Tab activeTab() {
+		return (Tab) tabbedPane.getSelectedComponent();
 	}
 	
 	private class ButtonHandler implements ActionListener {
@@ -460,24 +473,6 @@ public class EditorWindow extends JFrame {
 			else if (e.getSource() == fileMenuClose) {
 				System.exit(0);
 			}
-		}
-	}
-	
-	private class Key implements KeyListener {
-		@Override
-		public void keyPressed(KeyEvent e) {
-			 if ((e.getKeyCode() == KeyEvent.VK_S) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-                 saveFile();
-             }
-			 else if ((e.getKeyCode() == KeyEvent.VK_O) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-				 openFile();
-			 }
-		}
-		@Override
-		public void keyReleased(KeyEvent arg0) {
-		}
-		@Override
-		public void keyTyped(KeyEvent arg0) {
 		}
 	}
 }

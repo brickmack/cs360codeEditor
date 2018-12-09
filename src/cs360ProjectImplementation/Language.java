@@ -1,3 +1,14 @@
+/*
+ * Language
+ * 
+ * Collection of information describing a programming language
+ * 
+ * Contains a name, an array of HighlightRules, a default file extension for source code files, and an array of InsertableCodes
+ * 
+ * Language objects should be constructed and serialized externally using the LanguageBuilder, and the resulting .lng files should be
+ * placed in the languages directory so they can be accessed by the program
+ */
+
 package cs360ProjectImplementation;
 
 import java.io.FileInputStream;
@@ -43,6 +54,7 @@ public class Language implements java.io.Serializable {
 	}
 	
 	public static Language deserializeLanguage(String fileName) {
+		//deserializes a language from a .lng configuration file (built using LanguageBuilder)
 		Language lang = null;
 		try {
 			//read object from file

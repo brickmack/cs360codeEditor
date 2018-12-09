@@ -1,3 +1,12 @@
+/*
+ * Tab
+ * 
+ * contains a JTextPane in which the user can view and edit a file. Also contains information about the file open in that tab, including
+ * its name, location on the disk, language, saved/unsaved status, and past file states (using a FileState object)
+ *  
+ * Syntax highlighting is handled here
+ */
+
 package cs360ProjectImplementation;
 
 import java.awt.BorderLayout;
@@ -46,7 +55,8 @@ public class Tab extends JPanel {
 		
 		setLayout(new BorderLayout(0, 0));
 		//textPane = new JTextPaneCollapsible();
-		textPane = new JTP();
+		textPane = new JTextPane();
+		((AbstractDocument) textPane.getDocument()).setDocumentFilter(new Filter()); //set a Filter object which ensures correct tab alignment
 	    textPane.setFont(new Font("Arial", Font.PLAIN, 15));
 		
 		fileStates.setText("");
@@ -77,8 +87,6 @@ public class Tab extends JPanel {
 				if (enabled == true) {
 					highlight();
 					
-					
-					
 					isSaved = false;
 				}
 			}
@@ -99,6 +107,7 @@ public class Tab extends JPanel {
 	}
 	
 	private void highlight() {
+		//syntax highlighting
 		Runnable doHighlight = new Runnable() {
 			@Override
 			public void run() {
@@ -187,6 +196,7 @@ public class Tab extends JPanel {
 	}
 	
 	public void setDiskLocation(File diskLocation) {
+		//sets the location the file is saved at, and the name that should be displayed in its tab
 		this.diskLocation = diskLocation;
 		
 		//set name by cutting off everything up to the last path separator
@@ -202,9 +212,14 @@ public class Tab extends JPanel {
 	public void setSaved() {
 		//tells the Tab that EditorWindow has saved it, so closing is now safe
 		isSaved = true;
+		
+		//also clear previous undo/redo states (fixes bug with loading an existing file, also keeps the linked list from growing too large. May find a better way later)
+		fileStates.setPrev(null);
+		fileStates.setNext(null);
 	}
 	
 	public boolean canClose() {
+		//check if we are allowed to close the tab or not. Can't close without explicit user permission if there are unsaved changes in the Tab
 		if (isSaved == true) {
 			return true;
 		}
@@ -229,13 +244,9 @@ public class Tab extends JPanel {
 	}
 }
 
-class JTP extends JTextPane {
-    JTP() {
-        ((AbstractDocument) getDocument()).setDocumentFilter(new Filter());
-    }
-}
-
 class Filter extends DocumentFilter {
+	//filter which ensures tab alignment. New lines auto-indent to the same position as the previous line
+	
     @Override
     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
         StringBuilder indentedString = new StringBuilder(string);

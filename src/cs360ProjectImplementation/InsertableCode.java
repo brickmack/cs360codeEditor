@@ -1,3 +1,9 @@
+/*
+ * InsertableCode
+ * 
+ * Used to construct a block of common code which can be inserted into a file. It contains a name, and start and end code blocks
+ */
+
 package cs360ProjectImplementation;
 
 public class InsertableCode implements java.io.Serializable {

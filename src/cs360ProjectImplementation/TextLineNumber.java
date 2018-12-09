@@ -1,3 +1,15 @@
+/*
+ * TextLineNumber
+ * 
+ *  Displays line numbers for a related text component. The text component must use the same line height for each line. TextLineNumber
+ *  supports wrapped lines and will highlight the line number of the current line in the text component.
+ *
+ *  To be used as a component added to the row header of a JScrollPane
+ *  
+ *  The code is from https://tips4java.wordpress.com/2009/05/23/text-component-line-number/, and has been only minimally modified (mostly for
+ *  consistent code styling with the rest of the project)
+ */
+
 package cs360ProjectImplementation;
 
 import java.awt.*;
@@ -9,15 +21,6 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
-/*
- *  This class will display line numbers for a related text component. The text
- *  component must use the same line height for each line. TextLineNumber
- *  supports wrapped lines and will highlight the line number of the current
- *  line in the text component.
- *
- *  This class was designed to be used as a component added to the row header
- *  of a JScrollPane.
- */
 public class TextLineNumber extends JPanel
 	implements CaretListener, DocumentListener, PropertyChangeListener {
 	public final static float LEFT = 0.0f;

@@ -1,3 +1,12 @@
+/*
+ * JTabbedPaneCloseable
+ * 
+ * panel across the top of EditorWindow containing several graphical tabs which the user can switch between.
+ * derived from https://gist.github.com/6dc/0c8926f85d701a869bb2, but has been substantially modified to support
+ * Tab objects instead of JPanels, add right-click context menus and tooltips, and to allow each Tab object to prevent its own closing
+ * (in case of unsaved changes)
+ */ 
+
 package cs360ProjectImplementation;
 
 import javax.swing.*;
@@ -52,10 +61,10 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
 
     //Button
     public class CloseButtonTab extends JPanel {
-        private Tab tab;
+        //private Tab tab;
 
         public CloseButtonTab(final Tab tab, String title, Icon icon, String tip) {
-            this.tab = tab;
+            //this.tab = tab;
             this.setToolTipText(tip);
             setOpaque(false);
             FlowLayout flowLayout = new FlowLayout(FlowLayout.CENTER, 3, 3);
@@ -68,6 +77,15 @@ public class JTabbedPaneCloseable extends JTabbedPane implements ActionListener,
             button.addMouseListener(new CloseListener(tab));
             button.setToolTipText("Close");
             add(button);
+            
+            //fixes issue with tabs that have tooltips set not being selectable
+            this.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                   int index = indexOfTabComponent((Component) e.getSource());
+                   setSelectedIndex(index);
+                }
+            });
         }
     }
     
