@@ -58,7 +58,7 @@ public class EditorWindow extends JFrame {
 			
 			languages = new Language[listOfFiles.length+1];
 			
-			languages[0] = new Language("Plaintext", null, "txt", null);
+			languages[0] = new Language("Plaintext", null, "txt", null); //dont need to load this one, its always present
 			
 			for (int i=1; i<languages.length; i++) {
 				languages[i] = Language.deserializeLanguage(folder + "/" + listOfFiles[i-1].getName());
@@ -82,8 +82,8 @@ public class EditorWindow extends JFrame {
 		//blank tab
 		createNewTab(null);
 		
-		System.out.println(tabbedPane.getSelectedComponent().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
-		((Tab) tabbedPane.getSelectedComponent()).enableTriggers();
+		System.out.println(activeTab().toString()); //this line needs to be here or it doesn't work. I have no idea what the actual fuck is happening here
+		activeTab().enableTriggers();
 		
 		menuSetup();
 	}
@@ -144,7 +144,7 @@ public class EditorWindow extends JFrame {
 											}
 										}
 										catch (BadLocationException ex) {
-											ex.printStackTrace();
+											JOptionPane.showMessageDialog(null, "IO error: " + ex.toString(), "CS360 Editor", JOptionPane.ERROR_MESSAGE);
 										}
 									}
 								}
@@ -269,7 +269,7 @@ public class EditorWindow extends JFrame {
 					for (int i=0; i<languages.length; i++) {
 						if (clickedText.equals(languages[i].getName())) {
 							//we need to set the language in the current tab
-							activeTab().setLangIndex(i);
+							activeTab().setLanguageByIndex(i);
 							activeTab().enableTriggers();
 						}
 					}
@@ -300,17 +300,6 @@ public class EditorWindow extends JFrame {
 		menuBar.add(languageMenu);
 	}
 	
-	public String getFileExtension(File file) {
-		//convenience method. Will probably merge into openFile later, since thats the only place we use it
-	    if (file == null) {
-	        return "";
-	    }
-	    String name = file.getName();
-	    int i = name.lastIndexOf('.');
-	    String ext = i > 0 ? name.substring(i + 1) : "";
-	    return ext;
-	}
-	
 	public JFileChooser chooserWithPath() {
 		if (lastPath == null) {
 			return new JFileChooser();
@@ -330,13 +319,7 @@ public class EditorWindow extends JFrame {
 			newTab = new Tab(name, languages, this);
 			newTab.setDiskLocation(file);
 			
-			//set language
-			String extension = getFileExtension(file);
-			for (int i=0; i<languages.length; i++) {
-				if (languages[i].getFileExtension().equals(extension)) {
-					newTab.setLangIndex(i);
-				}
-			}
+			newTab.setLanguageByExtension(file);
 			
 			try {
 				Scanner scanner = new Scanner(file);
@@ -357,7 +340,7 @@ public class EditorWindow extends JFrame {
 				newTab.setSaved();
 			}
 			catch (Exception ex) {
-				System.out.println(ex.toString());
+				JOptionPane.showMessageDialog(null, "Error: " + ex.toString(), "CS360 Editor", JOptionPane.ERROR_MESSAGE);
 			}
 			
 			tabbedPane.addTab(name, null, newTab, file.toString());
@@ -379,8 +362,8 @@ public class EditorWindow extends JFrame {
 				createNewTab(file);
 			}
 		}
-		catch (Exception e) {
-			System.out.println(e);
+		catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, "Error: " + ex.toString(), "CS360 Editor", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
@@ -389,7 +372,6 @@ public class EditorWindow extends JFrame {
 		File file = activeTab().getDiskLocation();
 		
 		if (file == null) {
-			System.out.println("disk location was not set");
 			return saveAsFile();
 		}
 		else {
@@ -398,12 +380,12 @@ public class EditorWindow extends JFrame {
 				bw.write(activeTextPane().getText());
 				bw.close();
 				
-				((Tab) tabbedPane.getSelectedComponent()).setSaved(); //tell Tab we saved its file
+				activeTab().setSaved(); //tell Tab we saved its file
 				
 				return 1;
 			}
-			catch (Exception e) {
-				System.out.println(e.toString());
+			catch (Exception ex) {
+				JOptionPane.showMessageDialog(null, "Error: " + ex.toString(), "CS360 Editor", JOptionPane.ERROR_MESSAGE);
 				return 0;
 			}
 		}
@@ -421,13 +403,13 @@ public class EditorWindow extends JFrame {
 				bw.write(activeTextPane().getText());
 				bw.close();
 				
-				((Tab) tabbedPane.getSelectedComponent()).setDiskLocation(file);
+				activeTab().setDiskLocation(file);
 				
 				//create a new tab with the same values as the old one, except name and tooltip, and set its disk location
 				Tab oldTab = ((Tab) tabbedPane.getSelectedComponent());
 				
-				((Tab) tabbedPane.getSelectedComponent()).setSaved(); //tell Tab we saved its file
-				
+				activeTab().setSaved(); //tell Tab we saved its file
+				activeTab().setLanguageByExtension(file);
 				tabbedPane.remove(tabbedPane.getSelectedIndex());
 				
 				tabbedPane.addTab(file.getName(), null, oldTab, file.toString());
@@ -441,8 +423,8 @@ public class EditorWindow extends JFrame {
 				return -1;
 			}
 		}
-		catch (Exception e) {
-			System.out.println(e);
+		catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, "Error: " + ex.toString(), "CS360 Editor", JOptionPane.ERROR_MESSAGE);
 			return 0;
 		}
 	}

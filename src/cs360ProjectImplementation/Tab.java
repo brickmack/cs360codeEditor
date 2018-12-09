@@ -167,10 +167,29 @@ public class Tab extends JPanel {
 		enabled = false;
 	}
 	
-	public void setLangIndex(int languageIndex) {
+	public void setLanguageByIndex(int languageIndex) {
 		this.languageIndex = languageIndex;
 		language = languages[languageIndex];
 		highlight();
+	}
+	
+	public void setLanguageByExtension(File file) {
+		//set language from file extension
+		
+		if (file != null) {
+			String name = file.getName();
+			
+			String extension = "";
+			if (name.lastIndexOf('.') > 0) {
+				extension = name.substring(name.lastIndexOf('.') + 1);
+			}
+			
+			for (int i=0; i<languages.length; i++) {
+				if (languages[i].getFileExtension().equals(extension)) {
+					setLanguageByIndex(i);
+				}
+			}
+		}
 	}
 	
 	public int getLangIndex() {
